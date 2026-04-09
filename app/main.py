@@ -1,5 +1,10 @@
 import streamlit as st
 import os
+import sys
+
+# Add parent directory to path so we can import services module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from services.qa_service import (
     ask_question,
     summarize_emails,
