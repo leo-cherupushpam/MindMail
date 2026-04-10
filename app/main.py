@@ -131,10 +131,32 @@ st.markdown("""
         padding: 0;
     }
 
-    /* Focus States for Accessibility */
+    /* ============================================
+       ACCESSIBILITY - Focus States
+       ============================================ */
+
+    /* Global Focus Style */
     *:focus-visible {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
+    }
+
+    /* Skip to Main Link */
+    .skip-to-main {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background-color: var(--color-primary);
+        color: white;
+        padding: 8px 16px;
+        text-decoration: none;
+        border-radius: var(--border-radius-md);
+        font-size: var(--font-size-sm);
+    }
+
+    .skip-to-main:focus {
+        top: 0;
+        z-index: 10000;
     }
 
     /* Link Styles */
@@ -324,6 +346,13 @@ st.markdown("""
     .stButton > button:focus-visible {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Enhanced keyboard focus for buttons */
+    .stButton > button:focus {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
     }
 
     /* Input Field Styling */
@@ -343,8 +372,16 @@ st.markdown("""
 
     input:focus, textarea:focus, select:focus {
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15), inset 0 0 0 1px rgba(37, 99, 235, 0.1);
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+    }
+
+    input:focus-visible, textarea:focus-visible, select:focus-visible {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15), inset 0 0 0 1px rgba(37, 99, 235, 0.1);
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
     }
 
     input:disabled, textarea:disabled, select:disabled {
@@ -474,6 +511,49 @@ st.markdown("""
         padding: var(--spacing-lg);
         background-color: white;
         overflow-y: auto;
+    }
+
+    /* ============================================
+       ACCESSIBILITY - Enhanced Keyboard Navigation
+       ============================================ */
+
+    /* Sidebar navigation keyboard focus */
+    .sidebar-nav-item:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
+    }
+
+    /* Link keyboard focus */
+    a:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    /* Reduce motion for users who prefer it */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: more) {
+        .sidebar-nav-item {
+            border: 1px solid transparent;
+        }
+
+        .sidebar-nav-item:focus-visible {
+            border: 2px solid var(--color-primary);
+        }
+
+        button {
+            border: 1px solid currentColor;
+        }
     }
 </style>
 """, unsafe_allow_html=True)

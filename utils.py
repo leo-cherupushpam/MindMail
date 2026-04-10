@@ -335,7 +335,7 @@ def render_input_card(label: str, content_html: str = None) -> None:
 
 def render_chat_message(role: str, content: str) -> None:
     """
-    Render a styled chat message bubble.
+    Render a styled chat message bubble with ARIA labels.
 
     Args:
         role: 'user' or 'assistant'
@@ -345,8 +345,10 @@ def render_chat_message(role: str, content: str) -> None:
         None (renders using st.markdown)
     """
     message_class = f"chat-message {role}-message"
+    aria_label = "User message" if role == "user" else "Assistant message"
+    role_attr = "article" if role == "assistant" else "document"
     message_html = f"""
-    <div class="{message_class}">
+    <div class="{message_class}" role="{role_attr}" aria-label="{aria_label}">
         <div>
             <strong>{"You:" if role == "user" else "Assistant:"}</strong> {content}
         </div>
@@ -357,7 +359,7 @@ def render_chat_message(role: str, content: str) -> None:
 
 def show_success_box(content: str, title: str = "Success") -> None:
     """
-    Display content in a styled success box with icon.
+    Display content in a styled success box with icon and ARIA role.
 
     Args:
         content: Content to display
@@ -367,7 +369,7 @@ def show_success_box(content: str, title: str = "Success") -> None:
         None (renders using st.markdown)
     """
     html = f"""
-    <div class="success-box">
+    <div class="success-box" role="status" aria-label="Success: {title}">
         <div style="font-weight: 600; color: var(--color-success); margin-bottom: 8px;">✓ {title}</div>
         <div style="font-size: 14px; color: var(--color-neutral-900);">{content}</div>
     </div>
@@ -377,7 +379,7 @@ def show_success_box(content: str, title: str = "Success") -> None:
 
 def show_info_box(content: str, title: str = "Information") -> None:
     """
-    Display content in a styled info box with icon.
+    Display content in a styled info box with icon and ARIA role.
 
     Args:
         content: Content to display
@@ -387,7 +389,7 @@ def show_info_box(content: str, title: str = "Information") -> None:
         None (renders using st.markdown)
     """
     html = f"""
-    <div class="info-box">
+    <div class="info-box" role="status" aria-label="Information: {title}">
         <div style="font-weight: 600; color: var(--color-primary); margin-bottom: 8px;">ℹ {title}</div>
         <div style="font-size: 14px; color: var(--color-neutral-900);">{content}</div>
     </div>
@@ -397,7 +399,7 @@ def show_info_box(content: str, title: str = "Information") -> None:
 
 def show_warning_box(content: str, title: str = "Warning") -> None:
     """
-    Display content in a styled warning box with icon.
+    Display content in a styled warning box with icon and ARIA role.
 
     Args:
         content: Content to display
@@ -407,7 +409,7 @@ def show_warning_box(content: str, title: str = "Warning") -> None:
         None (renders using st.markdown)
     """
     html = f"""
-    <div class="warning-box">
+    <div class="warning-box" role="alert" aria-label="Warning: {title}">
         <div style="font-weight: 600; color: var(--color-warning); margin-bottom: 8px;">⚠ {title}</div>
         <div style="font-size: 14px; color: var(--color-neutral-900);">{content}</div>
     </div>
@@ -417,7 +419,7 @@ def show_warning_box(content: str, title: str = "Warning") -> None:
 
 def show_error_box(content: str, title: str = "Error") -> None:
     """
-    Display content in a styled error box with icon.
+    Display content in a styled error box with icon and ARIA role.
 
     Args:
         content: Content to display
@@ -427,7 +429,7 @@ def show_error_box(content: str, title: str = "Error") -> None:
         None (renders using st.markdown)
     """
     html = f"""
-    <div class="error-box">
+    <div class="error-box" role="alert" aria-label="Error: {title}">
         <div style="font-weight: 600; color: var(--color-error); margin-bottom: 8px;">✕ {title}</div>
         <div style="font-size: 14px; color: var(--color-neutral-900);">{content}</div>
     </div>
