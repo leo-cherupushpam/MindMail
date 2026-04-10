@@ -33,37 +33,333 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
+# Design System & Custom CSS
 st.markdown("""
 <style>
+    /* ============================================
+       DESIGN TOKENS - Color Palette
+       ============================================ */
+    :root {
+        /* Primary Colors */
+        --color-primary: #2563EB;
+        --color-primary-dark: #1D4ED8;
+        --color-primary-light: #DBEAFE;
+
+        /* Semantic Colors */
+        --color-success: #10B981;
+        --color-success-light: #ECFDF5;
+        --color-warning: #F59E0B;
+        --color-warning-light: #FFFBEB;
+        --color-error: #EF4444;
+        --color-error-light: #FEF2F2;
+
+        /* Neutral Colors */
+        --color-neutral-50: #F9FAFB;
+        --color-neutral-100: #F3F4F6;
+        --color-neutral-200: #E5E7EB;
+        --color-neutral-400: #9CA3AF;
+        --color-neutral-600: #4B5563;
+        --color-neutral-900: #111827;
+
+        /* ============================================
+           DESIGN TOKENS - Typography
+           ============================================ */
+        --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+        /* Font Sizes */
+        --font-size-xs: 12px;
+        --font-size-sm: 14px;
+        --font-size-base: 16px;
+        --font-size-lg: 18px;
+        --font-size-xl: 24px;
+        --font-size-2xl: 32px;
+
+        /* Font Weights */
+        --font-weight-regular: 400;
+        --font-weight-medium: 500;
+        --font-weight-semibold: 600;
+        --font-weight-bold: 700;
+
+        /* ============================================
+           DESIGN TOKENS - Spacing (8px base unit)
+           ============================================ */
+        --spacing-xs: 4px;
+        --spacing-sm: 8px;
+        --spacing-md: 16px;
+        --spacing-lg: 24px;
+        --spacing-xl: 32px;
+        --spacing-2xl: 48px;
+
+        /* ============================================
+           DESIGN TOKENS - Border & Shadow
+           ============================================ */
+        --border-radius-sm: 4px;
+        --border-radius-md: 8px;
+        --border-radius-lg: 12px;
+
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+
+        /* Line Height */
+        --line-height-tight: 1.25;
+        --line-height-normal: 1.5;
+        --line-height-relaxed: 1.75;
+    }
+
+    /* ============================================
+       GLOBAL STYLES & RESETS
+       ============================================ */
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: var(--font-family);
+        font-size: var(--font-size-base);
+        line-height: var(--line-height-normal);
+        color: var(--color-neutral-900);
+        background-color: white;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Focus States for Accessibility */
+    *:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* Link Styles */
+    a {
+        color: var(--color-primary);
+        text-decoration: none;
+        transition: color 150ms ease;
+    }
+
+    a:hover {
+        color: var(--color-primary-dark);
+        text-decoration: underline;
+    }
+
+    /* ============================================
+       COMPONENT STYLES
+       ============================================ */
+
+    /* Main Header */
     .main-header {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
+        font-size: var(--font-size-2xl);
+        font-weight: var(--font-weight-bold);
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-neutral-900);
     }
+
+    /* Feature Card */
     .feature-card {
-        background-color: #f0f2f6;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
+        background-color: var(--color-neutral-50);
+        border: 1px solid var(--color-neutral-200);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+        height: 180px;
+        box-shadow: var(--shadow-sm);
+        transition: all 200ms ease-out;
+        cursor: pointer;
     }
+
+    .feature-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: scale(1.02);
+    }
+
+    .feature-card.active {
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    /* Success Box */
     .success-box {
-        background-color: #d4edda;
-        border-left: 4px solid #28a745;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
+        background-color: var(--color-success-light);
+        border-left: 4px solid var(--color-success);
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-md);
+        margin: var(--spacing-lg) 0;
+        color: var(--color-neutral-900);
     }
+
+    /* Info Box */
     .info-box {
-        background-color: #e7f3ff;
-        border-left: 4px solid #2196F3;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
+        background-color: #EFF6FF;
+        border-left: 4px solid var(--color-primary);
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-md);
+        margin: var(--spacing-lg) 0;
+        color: var(--color-neutral-900);
     }
+
+    /* Warning Box */
+    .warning-box {
+        background-color: var(--color-warning-light);
+        border-left: 4px solid var(--color-warning);
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-md);
+        margin: var(--spacing-lg) 0;
+        color: var(--color-neutral-900);
+    }
+
+    /* Error Box */
+    .error-box {
+        background-color: var(--color-error-light);
+        border-left: 4px solid var(--color-error);
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-md);
+        margin: var(--spacing-lg) 0;
+        color: var(--color-neutral-900);
+    }
+
+    /* Input Card Container */
+    .input-card {
+        background-color: var(--color-neutral-50);
+        border: 1px solid var(--color-neutral-200);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .input-card label {
+        display: block;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-neutral-900);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    /* Chat Message Bubble - User */
+    .chat-message.user-message {
+        margin-bottom: var(--spacing-md);
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .chat-message.user-message > div {
+        background-color: var(--color-primary);
+        color: white;
+        padding: 12px 16px;
+        border-radius: var(--border-radius-lg);
+        max-width: 70%;
+        word-wrap: break-word;
+        box-shadow: var(--shadow-sm);
+        transition: box-shadow 150ms ease;
+    }
+
+    .chat-message.user-message > div:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Chat Message Bubble - Assistant */
+    .chat-message.assistant-message {
+        margin-bottom: var(--spacing-md);
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .chat-message.assistant-message > div {
+        background-color: var(--color-neutral-100);
+        color: var(--color-neutral-900);
+        padding: 12px 16px;
+        border-radius: var(--border-radius-lg);
+        max-width: 70%;
+        word-wrap: break-word;
+        box-shadow: var(--shadow-sm);
+        transition: box-shadow 150ms ease;
+    }
+
+    .chat-message.assistant-message > div:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Button Styles */
     .stButton > button {
         width: 100%;
-        border-radius: 8px;
+        border-radius: var(--border-radius-md);
+        padding: 10px 16px;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-medium);
+        border: none;
+        cursor: pointer;
+        transition: all 150ms ease;
+    }
+
+    /* Primary Button */
+    .stButton > button {
+        background-color: var(--color-primary);
+        color: white;
+    }
+
+    .stButton > button:hover:not(:disabled) {
+        background-color: var(--color-primary-dark);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stButton > button:active:not(:disabled) {
+        background-color: #1E40AF;
+    }
+
+    .stButton > button:disabled {
+        background-color: var(--color-neutral-200);
+        color: var(--color-neutral-400);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .stButton > button:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    /* Input Field Styling */
+    input, textarea, select {
+        font-family: var(--font-family);
+        font-size: var(--font-size-sm);
+        border: 1px solid var(--color-neutral-200);
+        border-radius: var(--border-radius-md);
+        padding: 12px 16px;
+        color: var(--color-neutral-900);
+        transition: all 150ms ease;
+    }
+
+    input::placeholder, textarea::placeholder {
+        color: var(--color-neutral-400);
+    }
+
+    input:focus, textarea:focus, select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
+
+    input:disabled, textarea:disabled, select:disabled {
+        background-color: var(--color-neutral-100);
+        color: var(--color-neutral-400);
+        cursor: not-allowed;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--color-neutral-200);
+        border-top-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 </style>
 """, unsafe_allow_html=True)

@@ -277,3 +277,185 @@ def get_responsive_columns(ratio_desktop: tuple, ratio_mobile: tuple = (1, 1)) -
     # For now, return desktop ratio - true responsiveness would require
     # session state tracking or frontend integration
     return ratio_desktop
+
+
+# ============================================================================
+# DESIGN SYSTEM COMPONENTS - Modern UI
+# ============================================================================
+
+def render_feature_card(icon: str, title: str, description: str, is_selected: bool = False) -> None:
+    """
+    Render a styled feature card with hover and active states.
+
+    Args:
+        icon: Emoji icon (e.g., "💬")
+        title: Feature title (e.g., "Conversational Q&A")
+        description: Feature description (1-2 lines)
+        is_selected: Whether this card is selected/active
+
+    Returns:
+        None (renders using st.markdown)
+    """
+    active_class = "active" if is_selected else ""
+    card_html = f"""
+    <div class="feature-card {active_class}">
+        <div style="font-size: 32px; margin-bottom: 8px;">{icon}</div>
+        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--color-neutral-900);">
+            {title}
+        </div>
+        <div style="font-size: 14px; color: var(--color-neutral-600); line-height: 1.5;">
+            {description}
+        </div>
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
+
+
+def render_input_card(label: str, content_html: str = None) -> None:
+    """
+    Render a styled input card container.
+
+    Args:
+        label: Label text displayed above the input
+        content_html: HTML content for the input section (optional, use Streamlit widgets instead)
+
+    Returns:
+        None (renders using st.markdown)
+    """
+    label_html = f"""
+    <div class="input-card">
+        <label>{label}</label>
+    """
+    st.markdown(label_html, unsafe_allow_html=True)
+
+    if content_html:
+        st.markdown(content_html, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
+def render_chat_message(role: str, content: str) -> None:
+    """
+    Render a styled chat message bubble.
+
+    Args:
+        role: 'user' or 'assistant'
+        content: Message content
+
+    Returns:
+        None (renders using st.markdown)
+    """
+    message_class = f"chat-message {role}-message"
+    message_html = f"""
+    <div class="{message_class}">
+        <div>
+            <strong>{"You:" if role == "user" else "Assistant:"}</strong> {content}
+        </div>
+    </div>
+    """
+    st.markdown(message_html, unsafe_allow_html=True)
+
+
+def show_success_box(content: str, title: str = "Success") -> None:
+    """
+    Display content in a styled success box with icon.
+
+    Args:
+        content: Content to display
+        title: Box title (default: "Success")
+
+    Returns:
+        None (renders using st.markdown)
+    """
+    html = f"""
+    <div class="success-box">
+        <div style="font-weight: 600; color: var(--color-success); margin-bottom: 8px;">✓ {title}</div>
+        <div style="font-size: 14px; color: var(--color-neutral-900);">{content}</div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def show_info_box(content: str, title: str = "Information") -> None:
+    """
+    Display content in a styled info box with icon.
+
+    Args:
+        content: Content to display
+        title: Box title (default: "Information")
+
+    Returns:
+        None (renders using st.markdown)
+    """
+    html = f"""
+    <div class="info-box">
+        <div style="font-weight: 600; color: var(--color-primary); margin-bottom: 8px;">ℹ {title}</div>
+        <div style="font-size: 14px; color: var(--color-neutral-900);">{content}</div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def show_warning_box(content: str, title: str = "Warning") -> None:
+    """
+    Display content in a styled warning box with icon.
+
+    Args:
+        content: Content to display
+        title: Box title (default: "Warning")
+
+    Returns:
+        None (renders using st.markdown)
+    """
+    html = f"""
+    <div class="warning-box">
+        <div style="font-weight: 600; color: var(--color-warning); margin-bottom: 8px;">⚠ {title}</div>
+        <div style="font-size: 14px; color: var(--color-neutral-900);">{content}</div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def show_error_box(content: str, title: str = "Error") -> None:
+    """
+    Display content in a styled error box with icon.
+
+    Args:
+        content: Content to display
+        title: Box title (default: "Error")
+
+    Returns:
+        None (renders using st.markdown)
+    """
+    html = f"""
+    <div class="error-box">
+        <div style="font-weight: 600; color: var(--color-error); margin-bottom: 8px;">✕ {title}</div>
+        <div style="font-size: 14px; color: var(--color-neutral-900);">{content}</div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def render_empty_state(icon: str, title: str, message: str) -> None:
+    """
+    Render an empty state with icon, title, and message.
+
+    Args:
+        icon: Emoji icon (e.g., "📭")
+        title: Empty state title
+        message: Empty state message
+
+    Returns:
+        None (renders using st.markdown)
+    """
+    html = f"""
+    <div style="text-align: center; padding: 48px 24px; color: var(--color-neutral-600);">
+        <div style="font-size: 50px; margin-bottom: 16px;">{icon}</div>
+        <div style="font-size: 18px; font-weight: 600; color: var(--color-neutral-900); margin-bottom: 8px;">
+            {title}
+        </div>
+        <div style="font-size: 14px; line-height: 1.5;">
+            {message}
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
