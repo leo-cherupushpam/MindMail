@@ -22,7 +22,13 @@ from utils import (
     show_success,
     show_info,
     update_context,
-    add_chat_exchange
+    add_chat_exchange,
+    render_chat_message,
+    show_success_box,
+    show_info_box,
+    show_warning_box,
+    show_error_box,
+    render_empty_state
 )
 
 # Page configuration
@@ -601,17 +607,16 @@ with col_main:
     # FEATURE: Email Summarization
     # ====================================================================
     elif feature == "📝 Email Summarization":
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            st.info("**Sample emails loaded:**")
-            st.write("- email_1: Project kickoff")
-            st.write("- email_2: Budget update")
-            st.write("- email_3: Team announcements")
+        st.markdown("### 📝 Sample Emails")
+        st.markdown("- **email_1**: Project kickoff")
+        st.markdown("- **email_2**: Budget update")
+        st.markdown("- **email_3**: Team announcements")
+        st.markdown("")  # Spacing
 
         if primary_button("Generate Summary"):
             summary = with_spinner("Summarizing emails...", summarize_emails, st.session_state.email_context)
             if summary is not None:
-                show_success(summary)
+                show_success_box(summary, "Summary Generated")
 
     # ====================================================================
     # FEATURE: Draft Reply Generator
@@ -658,7 +663,7 @@ with col_main:
             if org_query:
                 organized = with_spinner("Organizing threads...", organize_threads, org_query, st.session_state.email_context)
                 if organized is not None:
-                    show_info(organized)
+                    show_info_box(organized, "Organized Threads")
             else:
                 st.warning("Please enter how you'd like to organize your threads.")
 
@@ -678,8 +683,8 @@ with col_main:
             context_with_emails = update_context(st.session_state.email_context, {'emails': sample_emails})
             suggestions = with_spinner("Analyzing email patterns...", suggest_inbox_rules, context_with_emails)
             if suggestions is not None:
-                st.markdown("### 📋 Suggested Rules")
-                show_success(suggestions)
+                st.markdown("")
+                show_success_box(suggestions, "Suggested Inbox Rules")
 
     # ====================================================================
     # FEATURE: Meeting Scheduler
@@ -695,8 +700,8 @@ with col_main:
             context_with_meetings = update_context(st.session_state.email_context, {'emails': meeting_emails})
             meeting_details = with_spinner("Extracting meeting information...", extract_meeting_details, context_with_meetings)
             if meeting_details is not None:
-                st.markdown("### 📅 Meeting Details")
-                show_info(meeting_details)
+                st.markdown("")
+                show_info_box(meeting_details, "Meeting Details Extracted")
 
     # Footer
     st.markdown("---")
