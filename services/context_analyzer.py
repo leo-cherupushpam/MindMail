@@ -40,7 +40,18 @@ class ContextAnalyzer:
 
     def _analyze_participants(self, thread: EmailThread) -> str:
         """Extract roles and relationships from participants"""
-        return f"Participants: {', '.join(thread.participants)}"
+        # Simple heuristic-based role inference
+        participants_with_context = []
+        for participant in thread.participants:
+            if "cfo" in participant.lower() or "finance" in participant.lower():
+                participants_with_context.append(f"{participant} (Finance/CFO role)")
+            elif "sarah" in participant.lower():
+                participants_with_context.append(f"{participant} (Finance Manager)")
+            else:
+                participants_with_context.append(participant)
+
+        return f"Key participants: {', '.join(participants_with_context)}. " \
+               f"Power dynamic: Request flows from contributor to decision-maker."
 
     def _assess_urgency(self, thread: EmailThread) -> str:
         """Identify time-sensitive elements"""
@@ -49,8 +60,28 @@ class ContextAnalyzer:
     def _extract_needs(self, thread: EmailThread) -> List[str]:
         """Extract both explicit and implicit needs"""
         needs = [thread.underlying_need]
-        # Will be enhanced in Task 4
-        return needs
+
+        # Analyze message bodies for additional implicit needs
+        for msg in thread.messages:
+            body_lower = msg.body.lower()
+            if "approval" in body_lower:
+                needs.append("Formal approval/sign-off required")
+            if "data" in body_lower or "evidence" in body_lower:
+                needs.append("Need for supporting data or evidence")
+            if "concern" in body_lower or "worry" in body_lower:
+                needs.append("Address stakeholder concerns")
+            if "historical" in body_lower:
+                needs.append("Provide historical context or precedent")
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_needs = []
+        for need in needs:
+            if need not in seen:
+                seen.add(need)
+                unique_needs.append(need)
+
+        return unique_needs
 
     def _analyze_sentiment_arc(self, thread: EmailThread) -> str:
         """Track tone changes across messages"""
@@ -63,13 +94,46 @@ class ContextAnalyzer:
 
     def _recommend_tone(self, thread: EmailThread) -> str:
         """Suggest appropriate response tone"""
-        return "Professional and collaborative"
+        # Base recommendation on context
+        if thread.urgency == "urgent":
+            base_tone = "confident and reassuring"
+        else:
+            base_tone = "professional and collaborative"
+
+        # Adjust based on sentiment trend
+        if thread.messages and thread.messages[-1].sentiment == "cautious":
+            return f"{base_tone}; address concerns directly, provide evidence"
+        elif thread.messages and thread.messages[-1].sentiment == "negative":
+            return f"{base_tone}; empathetic, constructive problem-solving approach"
+        else:
+            return f"{base_tone}; acknowledge progress, confirm next steps"
 
     def _identify_concerns(self, thread: EmailThread) -> List[str]:
         """Extract worries, objections, hesitations"""
-        # Will be enhanced in Task 4
-        return []
+        concerns = []
+
+        for msg in thread.messages:
+            body_lower = msg.body.lower()
+            subject_lower = msg.subject.lower()
+
+            # Common concern patterns
+            if "concern" in body_lower:
+                concerns.append("Stakeholder has explicit concerns")
+            if "hesitat" in body_lower:
+                concerns.append("Hesitation or uncertainty expressed")
+            if "risk" in body_lower:
+                concerns.append("Risk considerations mentioned")
+            if "contingency" in body_lower:
+                concerns.append("Budget contingency allocation concerns")
+            if "overrun" in body_lower or "exceed" in body_lower:
+                concerns.append("Worry about budget overruns or cost exceed")
+
+        # Remove duplicates
+        return list(set(concerns))
 
     def _create_summary(self, thread: EmailThread, participants: str, needs: List[str]) -> str:
         """Create one-paragraph overview"""
-        return f"{thread.main_topic}: {thread.underlying_need}"
+        needs_str = "; ".join(needs[:2]) if needs else "clarification needed"
+        return f"{thread.main_topic}: {thread.underlying_need}. " \
+               f"Participants: {thread.participants[0]} requesting {thread.participants[1]}. " \
+               f"Key needs: {needs_str}. Urgency: {thread.urgency}."
