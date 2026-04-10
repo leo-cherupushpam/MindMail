@@ -45,7 +45,6 @@ def summarize_emails(context_data: Dict[str, Any]) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}
             ],
-            temperature=0.1
         )
         return search_response.choices[0].message.content
     except Exception as e:
@@ -93,7 +92,6 @@ def generate_draft_reply(user_query: str, context_data: Dict[str, Any]) -> str:
                 {"role": "system", "content": "You are a highly skilled executive assistant drafting professional emails."},
                 {"role": "user", "content": synthesis_prompt}
             ],
-            temperature=0.3
         )
         return synthesis_response.choices[0].message.content
     except Exception as e:
@@ -139,7 +137,6 @@ def ask_question(user_query: str, context_data: Dict[str, Any]) -> str:
                 {"role": "system", "content": "You are a helpful, conversational AI assistant that synthesizes technical summaries into polished, natural language responses."},
                 {"role": "user", "content": synthesis_prompt}
             ],
-            temperature=0.3
         )
         return synthesis_response.choices[0].message.content
     except Exception as e:
@@ -192,7 +189,6 @@ def organize_threads(user_query: str, context_data: Dict[str, Any]) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}
             ],
-            temperature=0.1
         )
         return search_response.choices[0].message.content
     except Exception as e:
@@ -243,7 +239,6 @@ def suggest_inbox_rules(context_data: Dict[str, Any]) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}
             ],
-            temperature=0.1
         )
         return search_response.choices[0].message.content
     except Exception as e:
@@ -294,7 +289,6 @@ def extract_meeting_details(context_data: Dict[str, Any]) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}
             ],
-            temperature=0.1
         )
         return search_response.choices[0].message.content
     except Exception as e:
