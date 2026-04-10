@@ -30,7 +30,7 @@ st.set_page_config(
     page_title="Gmail Email Assistant",
     page_icon="📧",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"  # Hide native sidebar, we'll use custom layout
 )
 
 # Design System & Custom CSS
@@ -361,6 +361,114 @@ st.markdown("""
     @keyframes spin {
         to { transform: rotate(360deg); }
     }
+
+    /* ============================================
+       LAYOUT COMPONENTS - Fixed Sidebar
+       ============================================ */
+
+    /* Sidebar Header */
+    .sidebar-header {
+        font-size: var(--font-size-lg);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-neutral-900);
+        padding: var(--spacing-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        background-color: white;
+    }
+
+    /* Sidebar Navigation Container */
+    .sidebar-nav {
+        padding: 0 var(--spacing-md);
+    }
+
+    /* Sidebar Navigation Item */
+    .sidebar-nav-item {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-md) var(--spacing-lg);
+        margin-bottom: var(--spacing-sm);
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        background-color: transparent;
+        color: var(--color-neutral-900);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-medium);
+        transition: all 150ms ease;
+        text-decoration: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+    }
+
+    .sidebar-nav-item:hover {
+        background-color: var(--color-neutral-100);
+        color: var(--color-primary);
+    }
+
+    .sidebar-nav-item.active {
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    /* Sidebar Divider */
+    .sidebar-divider {
+        height: 1px;
+        background-color: var(--color-neutral-200);
+        margin: var(--spacing-lg) 0;
+    }
+
+    /* Sidebar Settings Section */
+    .sidebar-settings {
+        padding: 0 var(--spacing-md) var(--spacing-lg);
+        margin-top: auto;
+    }
+
+    .settings-label {
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-neutral-600);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--spacing-md);
+        display: block;
+    }
+
+    /* Main Content Header */
+    .content-header {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .content-title {
+        font-size: var(--font-size-2xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-neutral-900);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .content-subtitle {
+        font-size: var(--font-size-base);
+        color: var(--color-neutral-600);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    /* Sidebar Container Styling */
+    .sidebar-container {
+        background-color: var(--color-neutral-50);
+        border-right: 1px solid var(--color-neutral-200);
+        height: 100vh;
+        overflow-y: auto;
+        position: relative;
+    }
+
+    /* Main Content Container */
+    .main-content-container {
+        padding: var(--spacing-lg);
+        background-color: white;
+        overflow-y: auto;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -374,175 +482,227 @@ if 'email_context' not in st.session_state:
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
-# Sidebar
-with st.sidebar:
-    st.title("📧 Gmail Assistant")
-    st.markdown("---")
+if 'selected_feature' not in st.session_state:
+    st.session_state.selected_feature = "💬 Conversational Q&A"
 
-    feature = st.selectbox(
-        "Choose a feature",
-        [
-            "💬 Conversational Q&A",
-            "📝 Email Summarization",
-            "✉️ Draft Reply Generator",
-            "🧵 Thread Organization",
-            "🏷️ Smart Inbox Rules",
-            "📅 Meeting Scheduler"
-        ],
-        label_visibility="collapsed"
-    )
+# Define feature list
+FEATURES = [
+    "💬 Conversational Q&A",
+    "📝 Email Summarization",
+    "✉️ Draft Reply Generator",
+    "🧵 Thread Organization",
+    "🏷️ Smart Inbox Rules",
+    "📅 Meeting Scheduler"
+]
 
-    st.markdown("---")
-    st.markdown("### ⚙️ Settings")
+# Feature metadata for display
+FEATURE_METADATA = {
+    "💬 Conversational Q&A": {"icon": "💬", "title": "Ask Questions About Your Emails", "subtitle": "Get intelligent answers grounded in your email context."},
+    "📝 Email Summarization": {"icon": "📝", "title": "Email Summarization", "subtitle": "Get concise summaries of your email threads."},
+    "✉️ Draft Reply Generator": {"icon": "✉️", "title": "Draft Reply Generator", "subtitle": "Generate professional email replies based on your intent."},
+    "🧵 Thread Organization": {"icon": "🧵", "title": "Thread Organization", "subtitle": "Organize and filter email threads by topic or participant."},
+    "🏷️ Smart Inbox Rules": {"icon": "🏷️", "title": "Smart Inbox Rules", "subtitle": "Get automated suggestions for email categorization."},
+    "📅 Meeting Scheduler": {"icon": "📅", "title": "Meeting Scheduler", "subtitle": "Extract meeting details from email threads."}
+}
+
+# Create 2-column layout: sidebar (1) and main content (4)
+col_sidebar, col_main = st.columns([1, 4], gap="small")
+
+# ============================================================================
+# LEFT COLUMN: FIXED SIDEBAR NAVIGATION
+# ============================================================================
+with col_sidebar:
+    # Sidebar Header
+    st.markdown("""
+    <div class="sidebar-header">
+        <span style="font-size: 24px;">📧</span>
+        <span>Gmail Assistant</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+
+    # Feature Navigation
+    st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True)
+
+    for feature in FEATURES:
+        # Create a button-like experience for each feature
+        is_active = st.session_state.selected_feature == feature
+        active_class = "active" if is_active else ""
+
+        if st.button(
+            feature,
+            key=f"nav_{feature}",
+            use_container_width=True,
+            help=f"Select {feature}"
+        ):
+            st.session_state.selected_feature = feature
+            st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Sidebar Divider
+    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+
+    # Settings Section
+    st.markdown('<div class="sidebar-settings">', unsafe_allow_html=True)
+    st.markdown('<span class="settings-label">⚙️ Settings</span>', unsafe_allow_html=True)
+
     if primary_button("Clear Chat History"):
         st.session_state.chat_history = []
         st.rerun()
 
-# Main content
-st.markdown('<p class="main-header">📧 Gmail Email Assistant</p>', unsafe_allow_html=True)
-st.markdown("Your AI-powered email assistant for smarter inbox management.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# Feature: Conversational Q&A
-if feature == "💬 Conversational Q&A":
-    st.markdown("### 💬 Ask Questions About Your Emails")
-    st.markdown("Get intelligent answers grounded in your email context.")
+# ============================================================================
+# RIGHT COLUMN: MAIN CONTENT AREA
+# ============================================================================
+with col_main:
+    # Get selected feature and metadata
+    feature = st.session_state.selected_feature
+    metadata = FEATURE_METADATA.get(feature, {})
 
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        user_query = st.text_input(
-            "Ask anything about your emails:",
-            placeholder="What did Sarah say about the budget?",
-            label_visibility="collapsed"
+    # Render Content Header
+    st.markdown('<div class="content-header">', unsafe_allow_html=True)
+    st.markdown(f'<div class="content-title">{metadata.get("title", feature)}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="content-subtitle">{metadata.get("subtitle", "")}</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ====================================================================
+    # FEATURE: Conversational Q&A
+    # ====================================================================
+    if feature == "💬 Conversational Q&A":
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            user_query = st.text_input(
+                "Ask anything about your emails:",
+                placeholder="What did Sarah say about the budget?",
+                label_visibility="collapsed"
+            )
+        with col2:
+            submit_btn = primary_button("Ask")
+
+        if submit_btn and user_query:
+            response = with_spinner("Analyzing your emails...", ask_question, user_query, st.session_state.email_context)
+            if response is not None:
+                add_chat_exchange(user_query, response)
+
+        # Display chat history
+        if st.session_state.chat_history:
+            st.markdown("### 💬 Conversation")
+            for msg in st.session_state.chat_history:
+                if msg["role"] == "user":
+                    st.markdown(f"**You:** {msg['content']}")
+                else:
+                    st.markdown(f"**Assistant:** {msg['content']}")
+                st.markdown("---")
+
+    # ====================================================================
+    # FEATURE: Email Summarization
+    # ====================================================================
+    elif feature == "📝 Email Summarization":
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.info("**Sample emails loaded:**")
+            st.write("- email_1: Project kickoff")
+            st.write("- email_2: Budget update")
+            st.write("- email_3: Team announcements")
+
+        if primary_button("Generate Summary"):
+            summary = with_spinner("Summarizing emails...", summarize_emails, st.session_state.email_context)
+            if summary is not None:
+                show_success(summary)
+
+    # ====================================================================
+    # FEATURE: Draft Reply Generator
+    # ====================================================================
+    elif feature == "✉️ Draft Reply Generator":
+        user_intent = st.text_area(
+            "What do you want to communicate?",
+            placeholder="I need to tell John I'll review the document by Friday...",
+            height=100
         )
-    with col2:
-        submit_btn = primary_button("Ask")
 
-    if submit_btn and user_query:
-        response = with_spinner("Analyzing your emails...", ask_question, user_query, st.session_state.email_context)
-        if response is not None:
-            add_chat_exchange(user_query, response)
+        col1, col2 = st.columns(2)
+        with col1:
+            tone = st.selectbox("Tone", ["Professional and polite", "Direct and actionable", "Friendly and casual", "Formal and detailed"])
+        with col2:
+            recipient = st.text_input("Recipient (optional)", placeholder="John")
 
-    # Display chat history
-    if st.session_state.chat_history:
-        st.markdown("### 💬 Conversation")
-        for msg in st.session_state.chat_history:
-            if msg["role"] == "user":
-                st.markdown(f"**You:** {msg['content']}")
+        if primary_button("Generate Draft"):
+            if user_intent:
+                # Update context with tone and recipient
+                context_updates = {'metadata': {'tone': tone}}
+                if recipient:
+                    context_updates['metadata']['recipient'] = recipient
+
+                context_with_tone = update_context(st.session_state.email_context, context_updates)
+
+                draft = with_spinner("Drafting your reply...", generate_draft_reply, user_intent, context_with_tone)
+                if draft is not None:
+                    st.markdown("### 📝 Your Draft")
+                    st.text_area("Copy and edit:", draft, height=200)
             else:
-                st.markdown(f"**Assistant:** {msg['content']}")
-            st.markdown("---")
+                st.warning("Please enter what you want to communicate.")
 
-# Feature: Email Summarization
-elif feature == "📝 Email Summarization":
-    st.markdown("### 📝 Email Summarization")
-    st.markdown("Get concise summaries of your email threads.")
+    # ====================================================================
+    # FEATURE: Thread Organization
+    # ====================================================================
+    elif feature == "🧵 Thread Organization":
+        org_query = st.text_input(
+            "How would you like to organize your threads?",
+            placeholder="Show me all emails about the project launch"
+        )
 
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.info("**Sample emails loaded:**")
-        st.write("- email_1: Project kickoff")
-        st.write("- email_2: Budget update")
-        st.write("- email_3: Team announcements")
+        if primary_button("Organize"):
+            if org_query:
+                organized = with_spinner("Organizing threads...", organize_threads, org_query, st.session_state.email_context)
+                if organized is not None:
+                    show_info(organized)
+            else:
+                st.warning("Please enter how you'd like to organize your threads.")
 
-    if primary_button("Generate Summary"):
-        summary = with_spinner("Summarizing emails...", summarize_emails, st.session_state.email_context)
-        if summary is not None:
-            show_success(summary)
+    # ====================================================================
+    # FEATURE: Smart Inbox Rules
+    # ====================================================================
+    elif feature == "🏷️ Smart Inbox Rules":
+        sample_emails = [
+            {"subject": "Weekly Newsletter: Tech Updates", "sender": "newsletter@techblog.com", "category": "promotional"},
+            {"subject": "URGENT: Server Down", "sender": "alerts@monitoring.com", "category": "important"},
+            {"subject": "Re: Q1 Budget Approval", "sender": "cfo@company.com", "category": "internal"},
+            {"subject": "Meeting Reminder: Team Sync", "sender": "calendar@company.com", "category": "internal"},
+            {"subject": "Your Amazon Order Shipped", "sender": "amazon@amazon.com", "category": "promotional"}
+        ]
 
-# Feature: Draft Reply Generator
-elif feature == "✉️ Draft Reply Generator":
-    st.markdown("### ✉️ Draft Reply Generator")
-    st.markdown("Generate professional email replies based on your intent.")
+        if primary_button("Analyze & Suggest Rules"):
+            context_with_emails = update_context(st.session_state.email_context, {'emails': sample_emails})
+            suggestions = with_spinner("Analyzing email patterns...", suggest_inbox_rules, context_with_emails)
+            if suggestions is not None:
+                st.markdown("### 📋 Suggested Rules")
+                show_success(suggestions)
 
-    user_intent = st.text_area(
-        "What do you want to communicate?",
-        placeholder="I need to tell John I'll review the document by Friday...",
-        height=100
+    # ====================================================================
+    # FEATURE: Meeting Scheduler
+    # ====================================================================
+    elif feature == "📅 Meeting Scheduler":
+        meeting_emails = [
+            {"subject": "Team Sync Tomorrow", "sender": "pm@company.com", "body": "Let's meet tomorrow at 2pm in Conference Room B to discuss Q2 goals."},
+            {"subject": "Re: Team Sync Tomorrow", "sender": "dev@company.com", "body": "2pm works for me. I'll bring the latest mockups."},
+            {"subject": "Re: Team Sync Tomorrow", "sender": "designer@company.com", "body": "Can we make it 2:30pm instead? I have a conflict at 2."}
+        ]
+
+        if primary_button("Extract Details"):
+            context_with_meetings = update_context(st.session_state.email_context, {'emails': meeting_emails})
+            meeting_details = with_spinner("Extracting meeting information...", extract_meeting_details, context_with_meetings)
+            if meeting_details is not None:
+                st.markdown("### 📅 Meeting Details")
+                show_info(meeting_details)
+
+    # Footer
+    st.markdown("---")
+    st.markdown(
+        "<div style='text-align: center; color: gray; font-size: 12px;'>"
+        "Gmail Email Assistant MVP • Built with Streamlit & OpenAI"
+        "</div>",
+        unsafe_allow_html=True
     )
-
-    col1, col2 = st.columns(2)
-    with col1:
-        tone = st.selectbox("Tone", ["Professional and polite", "Direct and actionable", "Friendly and casual", "Formal and detailed"])
-    with col2:
-        recipient = st.text_input("Recipient (optional)", placeholder="John")
-
-    if primary_button("Generate Draft"):
-        if user_intent:
-            # Update context with tone and recipient
-            context_updates = {'metadata': {'tone': tone}}
-            if recipient:
-                context_updates['metadata']['recipient'] = recipient
-
-            context_with_tone = update_context(st.session_state.email_context, context_updates)
-
-            draft = with_spinner("Drafting your reply...", generate_draft_reply, user_intent, context_with_tone)
-            if draft is not None:
-                st.markdown("### 📝 Your Draft")
-                st.text_area("Copy and edit:", draft, height=200)
-        else:
-            st.warning("Please enter what you want to communicate.")
-
-# Feature: Thread Organization
-elif feature == "🧵 Thread Organization":
-    st.markdown("### 🧵 Thread Organization")
-    st.markdown("Organize and filter email threads by topic or participant.")
-
-    org_query = st.text_input(
-        "How would you like to organize your threads?",
-        placeholder="Show me all emails about the project launch"
-    )
-
-    if primary_button("Organize"):
-        if org_query:
-            organized = with_spinner("Organizing threads...", organize_threads, org_query, st.session_state.email_context)
-            if organized is not None:
-                show_info(organized)
-        else:
-            st.warning("Please enter how you'd like to organize your threads.")
-
-# Feature: Smart Inbox Rules
-elif feature == "🏷️ Smart Inbox Rules":
-    st.markdown("### 🏷️ Smart Inbox Rules")
-    st.markdown("Get automated suggestions for email categorization.")
-
-    sample_emails = [
-        {"subject": "Weekly Newsletter: Tech Updates", "sender": "newsletter@techblog.com", "category": "promotional"},
-        {"subject": "URGENT: Server Down", "sender": "alerts@monitoring.com", "category": "important"},
-        {"subject": "Re: Q1 Budget Approval", "sender": "cfo@company.com", "category": "internal"},
-        {"subject": "Meeting Reminder: Team Sync", "sender": "calendar@company.com", "category": "internal"},
-        {"subject": "Your Amazon Order Shipped", "sender": "amazon@amazon.com", "category": "promotional"}
-    ]
-
-    if primary_button("Analyze & Suggest Rules"):
-        context_with_emails = update_context(st.session_state.email_context, {'emails': sample_emails})
-        suggestions = with_spinner("Analyzing email patterns...", suggest_inbox_rules, context_with_emails)
-        if suggestions is not None:
-            st.markdown("### 📋 Suggested Rules")
-            show_success(suggestions)
-
-# Feature: Meeting Scheduler
-elif feature == "📅 Meeting Scheduler":
-    st.markdown("### 📅 Meeting Scheduler")
-    st.markdown("Extract meeting details from email threads.")
-
-    meeting_emails = [
-        {"subject": "Team Sync Tomorrow", "sender": "pm@company.com", "body": "Let's meet tomorrow at 2pm in Conference Room B to discuss Q2 goals."},
-        {"subject": "Re: Team Sync Tomorrow", "sender": "dev@company.com", "body": "2pm works for me. I'll bring the latest mockups."},
-        {"subject": "Re: Team Sync Tomorrow", "sender": "designer@company.com", "body": "Can we make it 2:30pm instead? I have a conflict at 2."}
-    ]
-
-    if primary_button("Extract Details"):
-        context_with_meetings = update_context(st.session_state.email_context, {'emails': meeting_emails})
-        meeting_details = with_spinner("Extracting meeting information...", extract_meeting_details, context_with_meetings)
-        if meeting_details is not None:
-            st.markdown("### 📅 Meeting Details")
-            show_info(meeting_details)
-
-# Footer
-st.markdown("---")
-st.markdown(
-    "<div style='text-align: center; color: gray;'>"
-    "Gmail Email Assistant MVP • Built with Streamlit & OpenAI"
-    "</div>",
-    unsafe_allow_html=True
-)
