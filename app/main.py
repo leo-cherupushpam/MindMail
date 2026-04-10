@@ -8,11 +8,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from services.qa_service import (
     ask_question,
     summarize_emails,
-    generate_draft_reply,
-    organize_threads,
-    suggest_inbox_rules,
-    extract_meeting_details
+    generate_draft_reply
 )
+
+from services.models import EmailThread, EmailMessage, EnrichedContext
+from services.context_analyzer import ContextAnalyzer
+from services.mock_data import get_sample_threads
 
 # Import utility functions
 from utils import (
@@ -558,6 +559,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Initialize context analyzer and load sample threads
+if 'analyzer' not in st.session_state:
+    st.session_state.analyzer = ContextAnalyzer()
+
+if 'sample_threads' not in st.session_state:
+    st.session_state.sample_threads = get_sample_threads()
+
+if 'enriched_contexts' not in st.session_state:
+    st.session_state.enriched_contexts = []
+    for thread in st.session_state.sample_threads:
+        enriched = st.session_state.analyzer.analyze_thread(thread)
+        st.session_state.enriched_contexts.append(enriched)
+
 # Initialize session state
 if 'email_context' not in st.session_state:
     st.session_state.email_context = {
@@ -669,7 +683,10 @@ with col_main:
             submit_btn = primary_button("Ask")
 
         if submit_btn and user_query:
-            response = with_spinner("Analyzing your emails...", ask_question, user_query, st.session_state.email_context)
+            if st.session_state.enriched_contexts:
+                response = with_spinner("Analyzing your emails...", ask_question, user_query, st.session_state.enriched_contexts[0])
+            else:
+                response = "No enriched context available"
             if response is not None:
                 add_chat_exchange(user_query, response)
 
@@ -694,7 +711,10 @@ with col_main:
         st.markdown("")  # Spacing
 
         if primary_button("Generate Summary"):
-            summary = with_spinner("Summarizing emails...", summarize_emails, st.session_state.email_context)
+            if st.session_state.enriched_contexts:
+                summary = with_spinner("Summarizing emails...", summarize_emails, st.session_state.enriched_contexts[0])
+            else:
+                summary = "No enriched context available"
             if summary is not None:
                 show_success_box(summary, "Summary Generated")
 
@@ -710,20 +730,16 @@ with col_main:
 
         col1, col2 = st.columns(2)
         with col1:
-            tone = st.selectbox("Tone", ["Professional and polite", "Direct and actionable", "Friendly and casual", "Formal and detailed"])
+            tone = st.selectbox("Tone", ["professional", "collaborative", "assertive", "empathetic"])
         with col2:
             recipient = st.text_input("Recipient (optional)", placeholder="John")
 
         if primary_button("Generate Draft"):
             if user_intent:
-                # Update context with tone and recipient
-                context_updates = {'metadata': {'tone': tone}}
-                if recipient:
-                    context_updates['metadata']['recipient'] = recipient
-
-                context_with_tone = update_context(st.session_state.email_context, context_updates)
-
-                draft = with_spinner("Drafting your reply...", generate_draft_reply, user_intent, context_with_tone)
+                if st.session_state.enriched_contexts:
+                    draft = with_spinner("Drafting your reply...", generate_draft_reply, st.session_state.enriched_contexts[0], user_intent, tone)
+                else:
+                    draft = "No enriched context available"
                 if draft is not None:
                     st.markdown("### 📝 Your Draft")
                     st.text_area("Copy and edit:", draft, height=200)
