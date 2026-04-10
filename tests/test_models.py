@@ -1,4 +1,3 @@
-import pytest
 from dataclasses import is_dataclass
 from services.models import EmailMessage, EmailThread, EnrichedContext
 
@@ -23,7 +22,7 @@ def test_email_message_creation():
     assert msg.sender == "alice@example.com"
     assert msg.importance_level == "high"
     assert msg.sentiment == "positive"
-    assert msg.is_reply == False
+    assert not msg.is_reply
 
 
 def test_email_thread_creation():

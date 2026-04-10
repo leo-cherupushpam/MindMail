@@ -1,5 +1,5 @@
-from services.models import EmailMessage, EmailThread, EnrichedContext
 from typing import List
+from services.models import EmailThread, EnrichedContext
 
 
 class ContextAnalyzer:
@@ -114,7 +114,6 @@ class ContextAnalyzer:
 
         for msg in thread.messages:
             body_lower = msg.body.lower()
-            subject_lower = msg.subject.lower()
 
             # Common concern patterns
             if "concern" in body_lower:

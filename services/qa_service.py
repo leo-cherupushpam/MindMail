@@ -1,6 +1,5 @@
-from services.models import EmailMessage, EmailThread, EnrichedContext
-from services.context_analyzer import ContextAnalyzer
 from anthropic import Anthropic
+from services.models import EnrichedContext
 
 # Initialize Anthropic client
 try:
@@ -9,6 +8,7 @@ except Exception as e:
     # Log the error but allow the function to proceed with graceful fallback
     print(f"Warning: Could not initialize Anthropic client. Ensure ANTHROPIC_API_KEY is set. Error: {e}")
     client = None
+
 
 def summarize_emails(enriched_context: EnrichedContext) -> str:
     """
@@ -60,6 +60,7 @@ Provide a comprehensive summary that shows you understand the full context."""
     except Exception as e:
         print(f"Error during summarization: {e}")
         return f"Could not summarize emails due to API error: {e}"
+
 
 def generate_draft_reply(enriched_context: EnrichedContext, user_intent: str = None, tone: str = "professional") -> str:
     """
@@ -116,6 +117,7 @@ Provide a ready-to-send email draft."""
     except Exception as e:
         return f"An error occurred during draft generation: {e}"
 
+
 def ask_question(question: str, enriched_context: EnrichedContext) -> str:
     """
     Answer questions about emails using enriched context.
@@ -159,4 +161,3 @@ Consider the full conversation history and implicit meanings. Look beyond surfac
         return message.content[0].text
     except Exception as e:
         return f"An error occurred during question answering: {e}"
-

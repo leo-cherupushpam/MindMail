@@ -1,35 +1,24 @@
-import streamlit as st
 import os
 import sys
+import streamlit as st
 
 # Add parent directory to path so we can import services module
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from services.qa_service import (
+from services.qa_service import (  # noqa: E402
     ask_question,
     summarize_emails,
     generate_draft_reply
 )
-
-from services.models import EmailThread, EmailMessage, EnrichedContext
-from services.context_analyzer import ContextAnalyzer
-from services.mock_data import get_sample_threads
+from services.context_analyzer import ContextAnalyzer  # noqa: E402
+from services.mock_data import get_sample_threads  # noqa: E402
 
 # Import utility functions
-from utils import (
-    safe_execute,
+from utils import (  # noqa: E402
     with_spinner,
     primary_button,
-    show_success,
-    show_info,
-    update_context,
     add_chat_exchange,
-    render_chat_message,
     show_success_box,
-    show_info_box,
-    show_warning_box,
-    show_error_box,
-    render_empty_state
 )
 
 # Page configuration
@@ -747,7 +736,7 @@ with col_main:
                 st.warning("Please enter what you want to communicate.")
 
     # ====================================================================
-    # FEATURE: Thread Organization
+    # FEATURE: Thread Organization (Not Yet Implemented)
     # ====================================================================
     elif feature == "🧵 Thread Organization":
         org_query = st.text_input(
@@ -757,14 +746,13 @@ with col_main:
 
         if primary_button("Organize"):
             if org_query:
-                organized = with_spinner("Organizing threads...", organize_threads, org_query, st.session_state.email_context)
-                if organized is not None:
-                    show_info_box(organized, "Organized Threads")
+                # Note: organize_threads function not yet implemented
+                st.info("Thread organization feature coming soon!")
             else:
                 st.warning("Please enter how you'd like to organize your threads.")
 
     # ====================================================================
-    # FEATURE: Smart Inbox Rules
+    # FEATURE: Smart Inbox Rules (Not Yet Implemented)
     # ====================================================================
     elif feature == "🏷️ Smart Inbox Rules":
         sample_emails = [
@@ -776,14 +764,11 @@ with col_main:
         ]
 
         if primary_button("Analyze & Suggest Rules"):
-            context_with_emails = update_context(st.session_state.email_context, {'emails': sample_emails})
-            suggestions = with_spinner("Analyzing email patterns...", suggest_inbox_rules, context_with_emails)
-            if suggestions is not None:
-                st.markdown("")
-                show_success_box(suggestions, "Suggested Inbox Rules")
+            # Note: suggest_inbox_rules function not yet implemented
+            st.info("Smart Inbox Rules feature coming soon!")
 
     # ====================================================================
-    # FEATURE: Meeting Scheduler
+    # FEATURE: Meeting Scheduler (Not Yet Implemented)
     # ====================================================================
     elif feature == "📅 Meeting Scheduler":
         meeting_emails = [
@@ -793,11 +778,8 @@ with col_main:
         ]
 
         if primary_button("Extract Details"):
-            context_with_meetings = update_context(st.session_state.email_context, {'emails': meeting_emails})
-            meeting_details = with_spinner("Extracting meeting information...", extract_meeting_details, context_with_meetings)
-            if meeting_details is not None:
-                st.markdown("")
-                show_info_box(meeting_details, "Meeting Details Extracted")
+            # Note: extract_meeting_details function not yet implemented
+            st.info("Meeting scheduler feature coming soon!")
 
     # Footer
     st.markdown("---")
