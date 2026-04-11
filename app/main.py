@@ -731,9 +731,70 @@ with col_main:
     st.markdown('</div>', unsafe_allow_html=True)
 
     # ====================================================================
+    # EMAIL THREAD SELECTOR (when authenticated)
+    # ====================================================================
+    if st.session_state.authenticated and st.session_state.email_threads:
+        st.markdown("### 📧 Select Email Thread")
+
+        if len(st.session_state.email_threads) > 0:
+            # Create list of threads for selection
+            thread_options = []
+            for idx, thread in enumerate(st.session_state.email_threads):
+                # Format: "Subject | From Sender | Date"
+                sender = thread.messages[0].sender if thread.messages else "Unknown"
+                subject = thread.main_topic[:50] + "..." if len(thread.main_topic) > 50 else thread.main_topic
+                timestamp = thread.messages[0].timestamp[:10] if thread.messages else "Unknown"
+                option_text = f"{subject} | {sender} | {timestamp}"
+                thread_options.append(option_text)
+
+            # Selectbox for thread selection
+            selected_idx = st.selectbox(
+                "Choose a thread to analyze:",
+                range(len(thread_options)),
+                format_func=lambda x: thread_options[x],
+                key="email_thread_selector"
+            )
+
+            if selected_idx is not None:
+                selected_thread = st.session_state.email_threads[selected_idx]
+
+                # Display thread details
+                with st.expander("📋 Thread Details", expanded=True):
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Messages", len(selected_thread.messages))
+                    with col2:
+                        st.metric("Participants", len(selected_thread.participants))
+                    with col3:
+                        st.metric("Urgency", selected_thread.urgency.upper())
+
+                    st.markdown("**Participants:**")
+                    st.write(", ".join(selected_thread.participants))
+
+                    st.markdown("**Messages Preview:**")
+                    for i, msg in enumerate(selected_thread.messages[:3], 1):
+                        st.markdown(f"**{i}. From:** {msg.sender}")
+                        st.markdown(f"   **Subject:** {msg.subject}")
+                        st.markdown(f"   **Preview:** {msg.body[:100]}...")
+
+                # Update enriched context for selected thread
+                enriched = st.session_state.analyzer.analyze_thread(selected_thread)
+                if 'selected_enriched_context' not in st.session_state:
+                    st.session_state.selected_enriched_context = enriched
+                else:
+                    st.session_state.selected_enriched_context = enriched
+        else:
+            st.info("📭 No email threads found. Try clicking 'Refresh Emails' in the sidebar.")
+
+        st.markdown("---")
+
+    # ====================================================================
     # FEATURE: Conversational Q&A
     # ====================================================================
     if feature == "💬 Conversational Q&A":
+        # Use selected thread context if available, otherwise use first enriched context
+        context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else (st.session_state.enriched_contexts[0] if st.session_state.enriched_contexts else None)
+
         col1, col2 = st.columns([3, 1])
         with col1:
             user_query = st.text_input(
@@ -745,10 +806,10 @@ with col_main:
             submit_btn = primary_button("Ask")
 
         if submit_btn and user_query:
-            if st.session_state.enriched_contexts:
-                response = with_spinner("Analyzing your emails...", ask_question, user_query, st.session_state.enriched_contexts[0])
+            if context:
+                response = with_spinner("Analyzing your emails...", ask_question, user_query, context)
             else:
-                response = "No enriched context available"
+                response = "No email context available"
             if response is not None:
                 add_chat_exchange(user_query, response)
 

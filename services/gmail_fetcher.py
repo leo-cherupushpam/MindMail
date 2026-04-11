@@ -173,12 +173,12 @@ def create_email_thread(thread_id: str, gmail_messages: List[dict]) -> EmailThre
     )
 
 
-def fetch_all_emails(max_results=100) -> List[EmailThread]:
+def fetch_all_emails(max_results=20) -> List[EmailThread]:
     """
-    Fetch all emails from Gmail and return as EmailThread list.
+    Fetch latest emails from Gmail and return as EmailThread list.
 
     Args:
-        max_results: Number of messages to fetch per API call (max 500)
+        max_results: Number of messages to fetch (default 20 for quick testing)
 
     Returns:
         List of EmailThread objects
@@ -188,44 +188,30 @@ def fetch_all_emails(max_results=100) -> List[EmailThread]:
         return []
 
     try:
-        all_threads = []
-        next_page_token = None
+        # Fetch latest messages (no pagination for simplicity)
+        results = service.users().messages().list(
+            userId='me',
+            maxResults=max_results
+        ).execute()
 
-        while True:
-            # Fetch page of messages
-            results = service.users().messages().list(
+        message_ids = [msg['id'] for msg in results.get('messages', [])]
+
+        if not message_ids:
+            return []
+
+        # Get full message details
+        gmail_messages = []
+        for msg_id in message_ids:
+            msg = service.users().messages().get(
                 userId='me',
-                maxResults=max_results,
-                pageToken=next_page_token
+                id=msg_id,
+                format='full'
             ).execute()
+            gmail_messages.append(msg)
 
-            message_ids = [msg['id'] for msg in results.get('messages', [])]
-
-            if not message_ids:
-                break
-
-            # Get full message details
-            gmail_messages = []
-            for msg_id in message_ids:
-                msg = service.users().messages().get(
-                    userId='me',
-                    id=msg_id,
-                    format='full'
-                ).execute()
-                gmail_messages.append(msg)
-
-            # Group by thread
-            threads_dict = group_messages_by_thread(gmail_messages)
-
-            # Convert to EmailThread objects
-            for thread_id, msgs in threads_dict.items():
-                thread = create_email_thread(thread_id, msgs)
-                all_threads.append(thread)
-
-            # Check for next page
-            next_page_token = results.get('nextPageToken')
-            if not next_page_token:
-                break
+        # Group by thread and convert
+        threads_dict = group_messages_by_thread(gmail_messages)
+        all_threads = [create_email_thread(thread_id, msgs) for thread_id, msgs in threads_dict.items()]
 
         return all_threads
 
