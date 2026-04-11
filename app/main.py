@@ -16,21 +16,11 @@ from services.context_analyzer import ContextAnalyzer  # noqa: E402
 from services.mock_data import get_sample_threads  # noqa: E402
 from services.gmail_auth import (  # noqa: E402
     is_authenticated,
-    get_gmail_service,
-    start_oauth_flow,
     logout
 )
 from services.gmail_fetcher import fetch_all_emails  # noqa: E402
 from services.cache import load_cache, save_cache, is_cache_valid  # noqa: E402
 from services.ui_helpers import format_email_card, format_thread_message  # noqa: E402
-
-# Import utility functions
-from utils import (  # noqa: E402
-    with_spinner,
-    primary_button,
-    add_chat_exchange,
-    show_success_box,
-)
 
 # Page configuration
 st.set_page_config(
@@ -792,9 +782,6 @@ if 'email_context' not in st.session_state:
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
-if 'selected_feature' not in st.session_state:
-    st.session_state.selected_feature = "💬 Conversational Q&A"
-
 if 'search_query' not in st.session_state:
     st.session_state.search_query = ""
 
@@ -803,26 +790,6 @@ if 'selected_thread_idx' not in st.session_state:
 
 if 'selected_enriched_context' not in st.session_state:
     st.session_state.selected_enriched_context = None
-
-# Define feature list
-FEATURES = [
-    "💬 Conversational Q&A",
-    "📝 Email Summarization",
-    "✉️ Draft Reply Generator",
-    "🧵 Thread Organization",
-    "🏷️ Smart Inbox Rules",
-    "📅 Meeting Scheduler"
-]
-
-# Feature metadata for display
-FEATURE_METADATA = {
-    "💬 Conversational Q&A": {"icon": "💬", "title": "Ask Questions About Your Emails", "subtitle": "Get intelligent answers grounded in your email context."},
-    "📝 Email Summarization": {"icon": "📝", "title": "Email Summarization", "subtitle": "Get concise summaries of your email threads."},
-    "✉️ Draft Reply Generator": {"icon": "✉️", "title": "Draft Reply Generator", "subtitle": "Generate professional email replies based on your intent."},
-    "🧵 Thread Organization": {"icon": "🧵", "title": "Thread Organization", "subtitle": "Organize and filter email threads by topic or participant."},
-    "🏷️ Smart Inbox Rules": {"icon": "🏷️", "title": "Smart Inbox Rules", "subtitle": "Get automated suggestions for email categorization."},
-    "📅 Meeting Scheduler": {"icon": "📅", "title": "Meeting Scheduler", "subtitle": "Extract meeting details from email threads."}
-}
 
 # ============================================================================
 # HEADER TOOLBAR
