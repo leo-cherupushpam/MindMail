@@ -1,5 +1,6 @@
 import os
 import sys
+import html
 import streamlit as st
 from datetime import datetime
 
@@ -910,28 +911,35 @@ with col_assistant:
                     if user_query:
                         context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else None
                         if context:
-                            with st.spinner("Thinking..."):
-                                response = ask_question(user_query, context)
-                            st.session_state.chat_history.append({"role": "user", "content": user_query})
-                            st.session_state.chat_history.append({"role": "assistant", "content": response})
-                            st.rerun()
+                            try:
+                                with st.spinner("Thinking..."):
+                                    response = ask_question(user_query, context)
+                                if response and not response.startswith("Error:"):
+                                    st.session_state.chat_history.append({"role": "user", "content": user_query})
+                                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+                                    st.rerun()
+                                else:
+                                    st.error(f"Failed to get response: {response}")
+                            except Exception as e:
+                                st.error(f"Error processing question: {str(e)}")
 
                 # Display chat history with HTML cards
                 if st.session_state.chat_history:
                     st.markdown("**Conversation:**")
                     for msg in st.session_state.chat_history:
+                        escaped_content = html.escape(msg['content'])
                         if msg["role"] == "user":
                             st.markdown(f"""
                             <div style="background-color: white; padding: 12px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #2563EB;">
                                 <div style="font-weight: 600; color: #111827; margin-bottom: 4px;">You:</div>
-                                <div style="color: #4B5563; white-space: pre-wrap;">{msg['content']}</div>
+                                <div style="color: #4B5563; white-space: pre-wrap;">{escaped_content}</div>
                             </div>
                             """, unsafe_allow_html=True)
                         else:
                             st.markdown(f"""
                             <div style="background-color: white; padding: 12px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #10B981;">
                                 <div style="font-weight: 600; color: #111827; margin-bottom: 4px;">Assistant:</div>
-                                <div style="color: #4B5563; white-space: pre-wrap;">{msg['content']}</div>
+                                <div style="color: #4B5563; white-space: pre-wrap;">{escaped_content}</div>
                             </div>
                             """, unsafe_allow_html=True)
 
@@ -941,13 +949,17 @@ with col_assistant:
                 if st.button("Generate Summary", use_container_width=True, key="summarize_button"):
                     context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else None
                     if context:
-                        with st.spinner("Summarizing..."):
-                            summary = summarize_emails(context)
-                        st.markdown("**Summary:**")
-                        st.write(summary)
-
-                        if st.button("📋 Copy Summary", use_container_width=True, key="copy_summary"):
-                            st.success("Copied to clipboard!")
+                        try:
+                            with st.spinner("Summarizing..."):
+                                summary = summarize_emails(context)
+                            if summary and not summary.startswith("Error:"):
+                                st.markdown("**Summary:**")
+                                st.write(summary)
+                                st.info("💡 Tip: Select the text above and use Ctrl+C / Cmd+C to copy")
+                            else:
+                                st.error(f"Failed to generate summary: {summary}")
+                        except Exception as e:
+                            st.error(f"Error generating summary: {str(e)}")
 
             # DRAFT TAB
             with tab_draft:
@@ -970,19 +982,23 @@ with col_assistant:
                     if intent:
                         context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else None
                         if context:
-                            with st.spinner("Drafting..."):
-                                draft = generate_draft_reply(context, intent, tone.lower())
-                            st.markdown("**Your Draft:**")
-                            st.text_area(
-                                "Edit and copy:",
-                                value=draft,
-                                height=150,
-                                disabled=True,
-                                label_visibility="collapsed"
-                            )
-
-                            if st.button("📋 Copy Draft", use_container_width=True, key="copy_draft"):
-                                st.success("Copied to clipboard!")
+                            try:
+                                with st.spinner("Drafting..."):
+                                    draft = generate_draft_reply(context, intent, tone.lower())
+                                if draft and not draft.startswith("Error:"):
+                                    st.markdown("**Your Draft:**")
+                                    st.text_area(
+                                        "Edit and copy:",
+                                        value=draft,
+                                        height=150,
+                                        disabled=True,
+                                        label_visibility="collapsed"
+                                    )
+                                    st.info("💡 Tip: Select the text above and use Ctrl+C / Cmd+C to copy")
+                                else:
+                                    st.error(f"Failed to generate draft: {draft}")
+                            except Exception as e:
+                                st.error(f"Error generating draft: {str(e)}")
         else:
             st.info("Select an email to analyze")
     else:
