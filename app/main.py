@@ -207,6 +207,12 @@ st.markdown("""
         border-color: var(--color-primary);
     }
 
+    /* Email Card Hover State */
+    .email-card:hover {
+        box-shadow: var(--shadow-md);
+        background-color: #F9FAFB;
+    }
+
     /* Success Box */
     .success-box {
         background-color: var(--color-success-light);

@@ -25,7 +25,7 @@ def format_email_card(thread: EmailThread, is_selected: bool = False) -> str:
     border_style = "border-left: 4px solid #2563EB; background-color: #DBEAFE;" if is_selected else "border: 1px solid #E5E7EB; background-color: white;"
 
     html = f"""
-    <div style="
+    <div class="email-card" style="
         {border_style}
         border-radius: 8px;
         padding: 16px;
