@@ -1,6 +1,7 @@
 import os
 import sys
 import streamlit as st
+from datetime import datetime
 
 # Add parent directory to path so we can import services module
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,6 +13,14 @@ from services.qa_service import (  # noqa: E402
 )
 from services.context_analyzer import ContextAnalyzer  # noqa: E402
 from services.mock_data import get_sample_threads  # noqa: E402
+from services.gmail_auth import (  # noqa: E402
+    is_authenticated,
+    get_gmail_service,
+    start_oauth_flow,
+    logout
+)
+from services.gmail_fetcher import fetch_all_emails  # noqa: E402
+from services.cache import load_cache, save_cache, is_cache_valid  # noqa: E402
 
 # Import utility functions
 from utils import (  # noqa: E402
@@ -548,12 +557,28 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Initialize authentication state
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = is_authenticated()
+
+if 'email_threads' not in st.session_state:
+    if st.session_state.authenticated and is_cache_valid():
+        st.session_state.email_threads = load_cache()
+    else:
+        st.session_state.email_threads = []
+
+if 'last_refresh' not in st.session_state:
+    st.session_state.last_refresh = None
+
 # Initialize context analyzer and load sample threads
 if 'analyzer' not in st.session_state:
     st.session_state.analyzer = ContextAnalyzer()
 
 if 'sample_threads' not in st.session_state:
-    st.session_state.sample_threads = get_sample_threads()
+    if st.session_state.authenticated and st.session_state.email_threads:
+        st.session_state.sample_threads = st.session_state.email_threads
+    else:
+        st.session_state.sample_threads = get_sample_threads()
 
 if 'enriched_contexts' not in st.session_state:
     st.session_state.enriched_contexts = []
@@ -610,6 +635,51 @@ with col_sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+
+    # Authentication Section
+    if not st.session_state.authenticated:
+        st.markdown('<div style="background-color: #FEF2F2; padding: 16px; border-radius: 8px; margin-bottom: 16px;">', unsafe_allow_html=True)
+        st.markdown('**📧 Connect to Gmail**')
+        st.markdown('Connect your Gmail account to analyze real emails.')
+
+        if st.button("🔐 Authenticate with Gmail", use_container_width=True):
+            st.info("Please ensure you have downloaded `client_secret.json` from Google Cloud Console OAuth credentials.")
+            try:
+                creds = start_oauth_flow()
+                st.session_state.authenticated = True
+                st.success("✅ Connected to Gmail!")
+                st.rerun()
+            except FileNotFoundError:
+                st.error("❌ client_secret.json not found. Download from Google Cloud Console.")
+            except Exception as e:
+                st.error(f"❌ Authentication failed: {str(e)}")
+        st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div style="background-color: #ECFDF5; padding: 16px; border-radius: 8px; margin-bottom: 16px;">', unsafe_allow_html=True)
+        st.markdown('✅ **Connected to Gmail**')
+
+        col_refresh, col_logout = st.columns(2)
+        with col_refresh:
+            if st.button("🔄 Refresh Emails", use_container_width=True):
+                with st.spinner("Fetching emails from Gmail..."):
+                    threads = fetch_all_emails()
+                    save_cache(threads)
+                    st.session_state.email_threads = threads
+                    st.session_state.sample_threads = threads
+                    st.session_state.last_refresh = datetime.now().isoformat()
+                    st.success(f"✅ Updated {len(threads)} threads")
+                    st.rerun()
+
+        with col_logout:
+            if st.button("🚪 Logout", use_container_width=True):
+                logout()
+                st.session_state.authenticated = False
+                st.session_state.email_threads = []
+                st.session_state.sample_threads = get_sample_threads()
+                st.success("✅ Logged out")
+                st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # Feature Navigation
     st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True)
