@@ -554,6 +554,48 @@ st.markdown("""
             border: 1px solid currentColor;
         }
     }
+
+    /* ============================================
+       3-COLUMN GRID LAYOUT
+       ============================================ */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 2.75fr 1.25fr;
+        gap: 0;
+        height: calc(100vh - 80px);
+        width: 100%;
+    }
+
+    .grid-column {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .email-list-col {
+        background-color: #F3F4F6;
+        border-right: 1px solid #E5E7EB;
+        padding: 16px;
+    }
+
+    .thread-viewer-col {
+        background-color: white;
+        padding: 24px;
+    }
+
+    .assistant-sidebar-col {
+        background-color: #F9FAFB;
+        border-left: 1px solid #E5E7EB;
+        padding: 16px;
+    }
+
+    /* Hide Streamlit's native sidebar and footer */
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+
+    footer {
+        display: none;
+    }
 </style>
 """, unsafe_allow_html=True)
 
