@@ -671,6 +671,85 @@ st.markdown("""
     .toolbar-button:hover {
         background-color: #1D4ED8;
     }
+
+    /* ============================================
+       ENHANCED STYLING - Professional Appearance
+       ============================================ */
+
+    /* Email list cards - hover effects */
+    .email-card {
+        transition: all 150ms ease;
+    }
+
+    .email-card:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    /* Thread viewer message styling */
+    .thread-message {
+        padding: 20px 0;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .message-sender {
+        font-weight: 700;
+        color: #111827;
+        font-size: 16px;
+    }
+
+    .message-time {
+        color: #9CA3AF;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    .message-body {
+        color: #111827;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin-top: 12px;
+    }
+
+    /* Tab styling */
+    .stTabs [data-baseweb="tab"] {
+        height: 44px;
+        padding: 0 16px;
+        border-bottom: 2px solid transparent;
+    }
+
+    .stTabs [aria-selected="true"] {
+        border-bottom-color: #2563EB;
+        color: #2563EB;
+    }
+
+    /* Assistant sidebar styling */
+    .assistant-context {
+        background-color: #DBEAFE;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        font-size: 13px;
+    }
+
+    /* Text areas and inputs */
+    .stTextArea textarea {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 14px;
+    }
+
+    /* Button styling - enhanced hover effects */
+    .stButton > button {
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 150ms ease;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 </style>
 """, unsafe_allow_html=True)
 
