@@ -721,6 +721,9 @@ if 'search_query' not in st.session_state:
 if 'selected_thread_idx' not in st.session_state:
     st.session_state.selected_thread_idx = 0
 
+if 'selected_enriched_context' not in st.session_state:
+    st.session_state.selected_enriched_context = None
+
 # Define feature list
 FEATURES = [
     "💬 Conversational Q&A",
@@ -849,6 +852,10 @@ with col_thread:
                     body=message.body
                 )
                 st.markdown(html_msg, unsafe_allow_html=True)
+
+            # Update enriched context for selected thread (for Task 5 - assistant sidebar)
+            enriched = st.session_state.analyzer.analyze_thread(selected_thread)
+            st.session_state.selected_enriched_context = enriched
         else:
             st.info("Select an email thread from the list")
     else:
