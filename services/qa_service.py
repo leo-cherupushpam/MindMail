@@ -10,6 +10,48 @@ except Exception as e:
     client = None
 
 
+def analyze_sentiment(text: str) -> str:
+    """
+    Simple sentiment analysis for email text.
+
+    Returns one of: 'positive', 'neutral', 'negative'
+    Falls back to 'neutral' if text is empty or analysis fails.
+
+    Args:
+        text: Email text to analyze
+
+    Returns:
+        Sentiment label as string
+    """
+    if not text or not text.strip():
+        return 'neutral'
+
+    # Simple heuristic-based sentiment analysis
+    text_lower = text.lower()
+
+    positive_words = [
+        'great', 'excellent', 'perfect', 'wonderful', 'good', 'happy',
+        'thanks', 'thank you', 'appreciate', 'love', 'excited', 'enthusiastic',
+        'pleased', 'satisfied', 'brilliant', 'fantastic', 'amazing'
+    ]
+
+    negative_words = [
+        'bad', 'terrible', 'awful', 'poor', 'hate', 'angry', 'upset',
+        'frustrated', 'disappointed', 'concerned', 'worried', 'problem',
+        'issue', 'error', 'failed', 'failure', 'critical', 'urgent'
+    ]
+
+    positive_count = sum(1 for word in positive_words if word in text_lower)
+    negative_count = sum(1 for word in negative_words if word in text_lower)
+
+    if positive_count > negative_count:
+        return 'positive'
+    elif negative_count > positive_count:
+        return 'negative'
+    else:
+        return 'neutral'
+
+
 def summarize_emails(enriched_context: EnrichedContext) -> str:
     """
     Summarize email thread with multiple perspectives.
