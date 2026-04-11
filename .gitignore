@@ -209,4 +209,5 @@ __marimo__/
 # Gmail credentials and cache
 credentials.json
 cached_emails.json
+client_secret.json
 .streamlit/
