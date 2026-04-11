@@ -64,12 +64,20 @@ def format_thread_message(sender: str, email: str, timestamp: str, body: str) ->
     Args:
         sender: Sender name
         email: Sender email
-        timestamp: Message timestamp
+        timestamp: Message timestamp (ISO format, e.g., "2026-04-08T09:15:00Z")
         body: Message body text
 
     Returns:
         HTML string for the message
     """
+    # Parse and format timestamp
+    formatted_timestamp = timestamp
+    try:
+        dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        formatted_timestamp = dt.strftime("%b %d, %I:%M %p")  # e.g., "Apr 10, 2:30 PM"
+    except (ValueError, AttributeError):
+        formatted_timestamp = timestamp  # Fallback to original format if parsing fails
+
     # Escape all user data to prevent XSS vulnerabilities
     sender = html.escape(sender)
     email = html.escape(email)
@@ -78,9 +86,9 @@ def format_thread_message(sender: str, email: str, timestamp: str, body: str) ->
     html_content = f"""
     <div style="margin-bottom: 24px;">
         <div style="font-weight: 700; font-size: 16px; color: #111827;">{sender}</div>
-        <div style="font-size: 13px; color: #4B5563;">{email}</div>
-        <div style="font-size: 13px; color: #9CA3AF; margin-bottom: 12px;">{timestamp}</div>
-        <div style="font-size: 15px; color: #111827; line-height: 1.6; white-space: pre-wrap;">{body}</div>
+        <div style="font-size: 14px; color: #4B5563;">{email}</div>
+        <div style="font-size: 14px; color: #9CA3AF; margin-bottom: 12px;">{formatted_timestamp}</div>
+        <div style="font-size: 16px; color: #111827; line-height: 1.75; white-space: pre-wrap; word-break: break-word;">{body}</div>
         <hr style="margin: 24px 0; border: none; border-top: 1px solid #E5E7EB;">
     </div>
     """

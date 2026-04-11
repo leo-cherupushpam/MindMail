@@ -839,8 +839,22 @@ with col_thread:
 
             # Thread header
             st.markdown(f"## {selected_thread.main_topic}")
-            st.caption(f"{len(selected_thread.messages)} messages from {len(selected_thread.participants)} participants")
-            st.caption(f"**Participants:** {', '.join(selected_thread.participants)}")
+
+            # Calculate date range from messages
+            if selected_thread.messages:
+                try:
+                    dates = []
+                    for msg in selected_thread.messages:
+                        dt = datetime.fromisoformat(msg.timestamp.replace('Z', '+00:00'))
+                        dates.append(dt.strftime("%b %d"))
+                    date_range = f"{dates[0]} - {dates[-1]}" if len(dates) > 1 else dates[0]
+                except (ValueError, AttributeError):
+                    date_range = "unknown dates"
+            else:
+                date_range = "unknown dates"
+
+            st.caption(f"{len(selected_thread.messages)} messages from {date_range}")
+            st.caption(f"From: {', '.join(selected_thread.participants)}")
             st.markdown("---")
 
             # Thread messages (chronological, oldest to newest)
