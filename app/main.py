@@ -883,8 +883,13 @@ with col_assistant:
         if 0 <= st.session_state.selected_thread_idx < len(st.session_state.email_threads):
             selected_thread = st.session_state.email_threads[st.session_state.selected_thread_idx]
 
-            # Context indicator
-            st.markdown(f"📧 **Analyzing:** {selected_thread.main_topic[:40]}...")
+            # Context indicator - show sender + subject
+            if selected_thread.messages:
+                sender = selected_thread.messages[0].sender
+                subject = selected_thread.main_topic[:30]
+                st.markdown(f"📧 **Analyzing:** {sender} — {subject}...")
+            else:
+                st.markdown(f"📧 **Analyzing:** {selected_thread.main_topic[:40]}...")
             st.markdown("---")
 
             # Tabbed interface
@@ -895,7 +900,7 @@ with col_assistant:
                 st.session_state.assistant_tab = "ask"
                 user_query = st.text_area(
                     "Ask about this email:",
-                    placeholder="What was the main topic?",
+                    placeholder="Ask about this email thread...",
                     label_visibility="collapsed",
                     height=100,
                     key="ask_input"
@@ -911,14 +916,24 @@ with col_assistant:
                             st.session_state.chat_history.append({"role": "assistant", "content": response})
                             st.rerun()
 
-                # Display chat history
+                # Display chat history with HTML cards
                 if st.session_state.chat_history:
                     st.markdown("**Conversation:**")
                     for msg in st.session_state.chat_history:
                         if msg["role"] == "user":
-                            st.markdown(f"**You:** {msg['content']}")
+                            st.markdown(f"""
+                            <div style="background-color: white; padding: 12px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #2563EB;">
+                                <div style="font-weight: 600; color: #111827; margin-bottom: 4px;">You:</div>
+                                <div style="color: #4B5563; white-space: pre-wrap;">{msg['content']}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
                         else:
-                            st.markdown(f"**Assistant:** {msg['content']}")
+                            st.markdown(f"""
+                            <div style="background-color: white; padding: 12px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #10B981;">
+                                <div style="font-weight: 600; color: #111827; margin-bottom: 4px;">Assistant:</div>
+                                <div style="color: #4B5563; white-space: pre-wrap;">{msg['content']}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
 
             # SUMMARIZE TAB
             with tab_summarize:
@@ -939,7 +954,7 @@ with col_assistant:
                 st.session_state.assistant_tab = "draft"
                 intent = st.text_area(
                     "What do you want to say?",
-                    placeholder="e.g., Approve the budget",
+                    placeholder="What do you want to say? (e.g., 'Approve the budget')",
                     label_visibility="collapsed",
                     height=100,
                     key="draft_input"
