@@ -21,6 +21,7 @@ from services.gmail_auth import (  # noqa: E402
 )
 from services.gmail_fetcher import fetch_all_emails  # noqa: E402
 from services.cache import load_cache, save_cache, is_cache_valid  # noqa: E402
+from services.ui_helpers import format_email_card, format_thread_message  # noqa: E402
 
 # Import utility functions
 from utils import (  # noqa: E402
@@ -772,307 +773,97 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
-# Create 2-column layout: sidebar (1) and main content (4)
-col_sidebar, col_main = st.columns([1, 4], gap="small")
+# Initialize session state if needed
+if 'selected_thread_idx' not in st.session_state:
+    st.session_state.selected_thread_idx = 0
+if 'search_query' not in st.session_state:
+    st.session_state.search_query = ""
+if 'assistant_tab' not in st.session_state:
+    st.session_state.assistant_tab = "ask"
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
 
-# ============================================================================
-# LEFT COLUMN: FIXED SIDEBAR NAVIGATION
-# ============================================================================
-with col_sidebar:
-    # Sidebar Header
-    st.markdown("""
-    <div class="sidebar-header">
-        <span style="font-size: 24px;">📧</span>
-        <span>Gmail Assistant</span>
-    </div>
-    """, unsafe_allow_html=True)
+# Create 3-column layout
+col_list, col_thread, col_assistant = st.columns([1, 2.75, 1.25], gap="small")
 
-    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+# LEFT COLUMN: EMAIL LIST
+with col_list:
+    st.markdown("### 📧 Inbox")
 
-    # Authentication Section
-    if not st.session_state.authenticated:
-        st.markdown('<div style="background-color: #FEF2F2; padding: 16px; border-radius: 8px; margin-bottom: 16px;">', unsafe_allow_html=True)
-        st.markdown('**📧 Connect to Gmail**')
-        st.markdown('Connect your Gmail account to analyze real emails.')
-
-        if st.button("🔐 Authenticate with Gmail", use_container_width=True):
-            st.info("Please ensure you have downloaded `client_secret.json` from Google Cloud Console OAuth credentials.")
-            try:
-                creds = start_oauth_flow()
-                st.session_state.authenticated = True
-                st.success("✅ Connected to Gmail!")
-                st.rerun()
-            except FileNotFoundError:
-                st.error("❌ client_secret.json not found. Download from Google Cloud Console.")
-            except Exception as e:
-                st.error(f"❌ Authentication failed: {str(e)}")
-        st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.markdown(f'<div style="background-color: #ECFDF5; padding: 16px; border-radius: 8px; margin-bottom: 16px;">', unsafe_allow_html=True)
-        st.markdown('✅ **Connected to Gmail**')
-
-        col_refresh, col_logout = st.columns(2)
-        with col_refresh:
-            if st.button("🔄 Refresh Emails", use_container_width=True):
-                with st.spinner("Fetching emails from Gmail..."):
-                    threads = fetch_all_emails()
-                    save_cache(threads)
-                    st.session_state.email_threads = threads
-                    st.session_state.sample_threads = threads
-                    st.session_state.last_refresh = datetime.now().isoformat()
-                    st.success(f"✅ Updated {len(threads)} threads")
-                    st.rerun()
-
-        with col_logout:
-            if st.button("🚪 Logout", use_container_width=True):
-                logout()
-                st.session_state.authenticated = False
-                st.session_state.email_threads = []
-                st.session_state.sample_threads = get_sample_threads()
-                st.success("✅ Logged out")
-                st.rerun()
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # Feature Navigation
-    st.markdown('<div class="sidebar-nav">', unsafe_allow_html=True)
-
-    for feature in FEATURES:
-        # Create a button-like experience for each feature
-        is_active = st.session_state.selected_feature == feature
-        active_class = "active" if is_active else ""
-
-        if st.button(
-            feature,
-            key=f"nav_{feature}",
-            use_container_width=True,
-            help=f"Select {feature}"
-        ):
-            st.session_state.selected_feature = feature
-            st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # Sidebar Divider
-    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
-
-    # Settings Section
-    st.markdown('<div class="sidebar-settings">', unsafe_allow_html=True)
-    st.markdown('<span class="settings-label">⚙️ Settings</span>', unsafe_allow_html=True)
-
-    if primary_button("Clear Chat History"):
-        st.session_state.chat_history = []
-        st.rerun()
-
-    if st.session_state.authenticated:
-        st.markdown('<small style="color: #9CA3AF;">Last refresh: ' + (st.session_state.last_refresh or 'Never') + '</small>', unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ============================================================================
-# RIGHT COLUMN: MAIN CONTENT AREA
-# ============================================================================
-with col_main:
-    # Get selected feature and metadata
-    feature = st.session_state.selected_feature
-    metadata = FEATURE_METADATA.get(feature, {})
-
-    # Render Content Header
-    st.markdown('<div class="content-header">', unsafe_allow_html=True)
-    st.markdown(f'<div class="content-title">{metadata.get("title", feature)}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="content-subtitle">{metadata.get("subtitle", "")}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # ====================================================================
-    # EMAIL THREAD SELECTOR (when authenticated)
-    # ====================================================================
     if st.session_state.authenticated and st.session_state.email_threads:
-        st.markdown("### 📧 Select Email Thread")
+        # Filter threads by search query
+        filtered_threads = st.session_state.email_threads
+        if st.session_state.search_query:
+            filtered_threads = [
+                t for t in st.session_state.email_threads
+                if st.session_state.search_query.lower() in t.main_topic.lower()
+                or any(st.session_state.search_query.lower() in msg.sender.lower() for msg in t.messages)
+            ]
 
-        if len(st.session_state.email_threads) > 0:
-            # Create list of threads for selection
-            thread_options = []
-            for idx, thread in enumerate(st.session_state.email_threads):
-                # Format: "Subject | From Sender | Date"
-                sender = thread.messages[0].sender if thread.messages else "Unknown"
-                subject = thread.main_topic[:50] + "..." if len(thread.main_topic) > 50 else thread.main_topic
-                timestamp = thread.messages[0].timestamp[:10] if thread.messages else "Unknown"
-                option_text = f"{subject} | {sender} | {timestamp}"
-                thread_options.append(option_text)
+        # Render email list with clickable cards
+        for idx, thread in enumerate(filtered_threads):
+            is_selected = (idx == st.session_state.selected_thread_idx)
 
-            # Selectbox for thread selection
-            selected_idx = st.selectbox(
-                "Choose a thread to analyze:",
-                range(len(thread_options)),
-                format_func=lambda x: thread_options[x],
-                key="email_thread_selector"
-            )
+            html_card = format_email_card(thread, is_selected)
 
-            if selected_idx is not None:
-                selected_thread = st.session_state.email_threads[selected_idx]
+            if st.button(
+                html_card,
+                key=f"email_card_{idx}",
+                use_container_width=True,
+                help="Click to select this thread"
+            ):
+                st.session_state.selected_thread_idx = idx
+                st.session_state.chat_history = []  # Clear chat for new thread
+                st.rerun()
+    else:
+        st.info("📭 No emails. Click 'Refresh' to fetch emails.")
 
-                # Display thread details
-                with st.expander("📋 Thread Details", expanded=True):
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Messages", len(selected_thread.messages))
-                    with col2:
-                        st.metric("Participants", len(selected_thread.participants))
-                    with col3:
-                        st.metric("Urgency", selected_thread.urgency.upper())
+# ============================================================================
+# CENTER COLUMN: THREAD VIEWER (Task 4 - to be implemented)
+# ============================================================================
+with col_thread:
+    st.markdown("### 📧 Email Thread")
 
-                    st.markdown("**Participants:**")
-                    st.write(", ".join(selected_thread.participants))
+    if st.session_state.authenticated and st.session_state.email_threads:
+        if 0 <= st.session_state.selected_thread_idx < len(st.session_state.email_threads):
+            selected_thread = st.session_state.email_threads[st.session_state.selected_thread_idx]
 
-                    st.markdown("**Messages Preview:**")
-                    for i, msg in enumerate(selected_thread.messages[:3], 1):
-                        st.markdown(f"**{i}. From:** {msg.sender}")
-                        st.markdown(f"   **Subject:** {msg.subject}")
-                        st.markdown(f"   **Preview:** {msg.body[:100]}...")
+            # Thread header
+            st.markdown(f"## {selected_thread.main_topic}")
+            st.caption(f"{len(selected_thread.messages)} messages from {len(selected_thread.participants)} participants")
+            st.caption(f"**Participants:** {', '.join(selected_thread.participants)}")
+            st.markdown("---")
 
-                # Update enriched context for selected thread
-                enriched = st.session_state.analyzer.analyze_thread(selected_thread)
-                if 'selected_enriched_context' not in st.session_state:
-                    st.session_state.selected_enriched_context = enriched
-                else:
-                    st.session_state.selected_enriched_context = enriched
+            # Thread messages (chronological, oldest to newest)
+            for message in selected_thread.messages:
+                html_msg = format_thread_message(
+                    sender=message.sender,
+                    email=message.sender,
+                    timestamp=message.timestamp,
+                    body=message.body
+                )
+                st.markdown(html_msg, unsafe_allow_html=True)
         else:
-            st.info("📭 No email threads found. Try clicking 'Refresh Emails' in the sidebar.")
+            st.info("Select an email thread from the list")
+    else:
+        st.info("📭 Authenticate and refresh to view emails")
 
-        st.markdown("---")
+# ============================================================================
+# RIGHT COLUMN: ASSISTANT SIDEBAR (Task 5 - to be implemented)
+# ============================================================================
+with col_assistant:
+    st.markdown("### 💬 Assistant")
+    st.info("Assistant features coming in Task 5")
+    # Task 5 will implement:
+    # - Ask about email
+    # - Summarize email
+    # - Draft reply
 
-    # ====================================================================
-    # FEATURE: Conversational Q&A
-    # ====================================================================
-    if feature == "💬 Conversational Q&A":
-        # Use selected thread context if available, otherwise use first enriched context
-        context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else (st.session_state.enriched_contexts[0] if st.session_state.enriched_contexts else None)
-
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            user_query = st.text_input(
-                "Ask anything about your emails:",
-                placeholder="What did Sarah say about the budget?",
-                label_visibility="collapsed"
-            )
-        with col2:
-            submit_btn = primary_button("Ask")
-
-        if submit_btn and user_query:
-            if context:
-                response = with_spinner("Analyzing your emails...", ask_question, user_query, context)
-            else:
-                response = "No email context available"
-            if response is not None:
-                add_chat_exchange(user_query, response)
-
-        # Display chat history
-        if st.session_state.chat_history:
-            st.markdown("### 💬 Conversation")
-            for msg in st.session_state.chat_history:
-                if msg["role"] == "user":
-                    st.markdown(f"**You:** {msg['content']}")
-                else:
-                    st.markdown(f"**Assistant:** {msg['content']}")
-                st.markdown("---")
-
-    # ====================================================================
-    # FEATURE: Email Summarization
-    # ====================================================================
-    elif feature == "📝 Email Summarization":
-        st.markdown("### 📝 Sample Emails")
-        st.markdown("- **email_1**: Project kickoff")
-        st.markdown("- **email_2**: Budget update")
-        st.markdown("- **email_3**: Team announcements")
-        st.markdown("")  # Spacing
-
-        if primary_button("Generate Summary"):
-            if st.session_state.enriched_contexts:
-                summary = with_spinner("Summarizing emails...", summarize_emails, st.session_state.enriched_contexts[0])
-            else:
-                summary = "No enriched context available"
-            if summary is not None:
-                show_success_box(summary, "Summary Generated")
-
-    # ====================================================================
-    # FEATURE: Draft Reply Generator
-    # ====================================================================
-    elif feature == "✉️ Draft Reply Generator":
-        user_intent = st.text_area(
-            "What do you want to communicate?",
-            placeholder="I need to tell John I'll review the document by Friday...",
-            height=100
-        )
-
-        col1, col2 = st.columns(2)
-        with col1:
-            tone = st.selectbox("Tone", ["professional", "collaborative", "assertive", "empathetic"])
-        with col2:
-            recipient = st.text_input("Recipient (optional)", placeholder="John")
-
-        if primary_button("Generate Draft"):
-            if user_intent:
-                if st.session_state.enriched_contexts:
-                    draft = with_spinner("Drafting your reply...", generate_draft_reply, st.session_state.enriched_contexts[0], user_intent, tone)
-                else:
-                    draft = "No enriched context available"
-                if draft is not None:
-                    st.markdown("### 📝 Your Draft")
-                    st.text_area("Copy and edit:", draft, height=200)
-            else:
-                st.warning("Please enter what you want to communicate.")
-
-    # ====================================================================
-    # FEATURE: Thread Organization (Not Yet Implemented)
-    # ====================================================================
-    elif feature == "🧵 Thread Organization":
-        org_query = st.text_input(
-            "How would you like to organize your threads?",
-            placeholder="Show me all emails about the project launch"
-        )
-
-        if primary_button("Organize"):
-            if org_query:
-                # Note: organize_threads function not yet implemented
-                st.info("Thread organization feature coming soon!")
-            else:
-                st.warning("Please enter how you'd like to organize your threads.")
-
-    # ====================================================================
-    # FEATURE: Smart Inbox Rules (Not Yet Implemented)
-    # ====================================================================
-    elif feature == "🏷️ Smart Inbox Rules":
-        sample_emails = [
-            {"subject": "Weekly Newsletter: Tech Updates", "sender": "newsletter@techblog.com", "category": "promotional"},
-            {"subject": "URGENT: Server Down", "sender": "alerts@monitoring.com", "category": "important"},
-            {"subject": "Re: Q1 Budget Approval", "sender": "cfo@company.com", "category": "internal"},
-            {"subject": "Meeting Reminder: Team Sync", "sender": "calendar@company.com", "category": "internal"},
-            {"subject": "Your Amazon Order Shipped", "sender": "amazon@amazon.com", "category": "promotional"}
-        ]
-
-        if primary_button("Analyze & Suggest Rules"):
-            # Note: suggest_inbox_rules function not yet implemented
-            st.info("Smart Inbox Rules feature coming soon!")
-
-    # ====================================================================
-    # FEATURE: Meeting Scheduler (Not Yet Implemented)
-    # ====================================================================
-    elif feature == "📅 Meeting Scheduler":
-        meeting_emails = [
-            {"subject": "Team Sync Tomorrow", "sender": "pm@company.com", "body": "Let's meet tomorrow at 2pm in Conference Room B to discuss Q2 goals."},
-            {"subject": "Re: Team Sync Tomorrow", "sender": "dev@company.com", "body": "2pm works for me. I'll bring the latest mockups."},
-            {"subject": "Re: Team Sync Tomorrow", "sender": "designer@company.com", "body": "Can we make it 2:30pm instead? I have a conflict at 2."}
-        ]
-
-        if primary_button("Extract Details"):
-            # Note: extract_meeting_details function not yet implemented
-            st.info("Meeting scheduler feature coming soon!")
-
-    # Footer
-    st.markdown("---")
-    st.markdown(
-        "<div style='text-align: center; color: gray; font-size: 12px;'>"
-        "Gmail Email Assistant MVP • Built with Streamlit & OpenAI"
-        "</div>",
-        unsafe_allow_html=True
-    )
+# Footer
+st.markdown("---")
+st.markdown(
+    "<div style='text-align: center; color: gray; font-size: 12px;'>"
+    "Gmail Email Assistant MVP • Built with Streamlit & OpenAI"
+    "</div>",
+    unsafe_allow_html=True
+)
