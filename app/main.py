@@ -596,6 +596,73 @@ st.markdown("""
     footer {
         display: none;
     }
+
+    /* ============================================
+       HEADER TOOLBAR - STICKY
+       ============================================ */
+    .header-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #F9FAFB;
+        border-bottom: 1px solid #E5E7EB;
+        padding: 12px 24px;
+        height: 60px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex: 1;
+    }
+
+    .toolbar-logo {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .toolbar-search {
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .toolbar-account {
+        font-size: 14px;
+        color: #4B5563;
+    }
+
+    .toolbar-timestamp {
+        font-size: 12px;
+        color: #9CA3AF;
+    }
+
+    .toolbar-button {
+        padding: 8px 16px;
+        background-color: #2563EB;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 150ms ease;
+    }
+
+    .toolbar-button:hover {
+        background-color: #1D4ED8;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -641,6 +708,12 @@ if 'chat_history' not in st.session_state:
 if 'selected_feature' not in st.session_state:
     st.session_state.selected_feature = "💬 Conversational Q&A"
 
+if 'search_query' not in st.session_state:
+    st.session_state.search_query = ""
+
+if 'selected_thread_idx' not in st.session_state:
+    st.session_state.selected_thread_idx = 0
+
 # Define feature list
 FEATURES = [
     "💬 Conversational Q&A",
@@ -660,6 +733,44 @@ FEATURE_METADATA = {
     "🏷️ Smart Inbox Rules": {"icon": "🏷️", "title": "Smart Inbox Rules", "subtitle": "Get automated suggestions for email categorization."},
     "📅 Meeting Scheduler": {"icon": "📅", "title": "Meeting Scheduler", "subtitle": "Extract meeting details from email threads."}
 }
+
+# ============================================================================
+# HEADER TOOLBAR
+# ============================================================================
+st.markdown('<div class="header-toolbar">', unsafe_allow_html=True)
+
+toolbar_col1, toolbar_col2, toolbar_col3 = st.columns([2, 2, 1], gap="small")
+
+with toolbar_col1:
+    st.markdown('<div class="toolbar-logo">📧 Gmail Assistant</div>', unsafe_allow_html=True)
+
+with toolbar_col2:
+    search_query = st.text_input("Search threads...", label_visibility="collapsed", key="header_search")
+    st.session_state.search_query = search_query
+
+with toolbar_col3:
+    col_account, col_refresh, col_logout = st.columns(3, gap="small")
+    with col_account:
+        if st.session_state.authenticated:
+            st.caption("leocherupushpam@gmail.com")
+    with col_refresh:
+        if st.button("🔄 Refresh", use_container_width=True, key="toolbar_refresh"):
+            with st.spinner("Fetching emails..."):
+                threads = fetch_all_emails()
+                save_cache(threads)
+                st.session_state.email_threads = threads
+                st.session_state.selected_thread_idx = 0
+                st.session_state.last_refresh = datetime.now().isoformat()
+            st.rerun()
+    with col_logout:
+        if st.button("🚪 Logout", use_container_width=True, key="toolbar_logout"):
+            logout()
+            st.session_state.authenticated = False
+            st.rerun()
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("---")
 
 # Create 2-column layout: sidebar (1) and main content (4)
 col_sidebar, col_main = st.columns([1, 4], gap="small")
