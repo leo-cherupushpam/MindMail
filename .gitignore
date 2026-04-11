@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Gmail credentials and cache
+credentials.json
+cached_emails.json
+.streamlit/
