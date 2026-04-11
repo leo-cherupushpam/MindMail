@@ -711,6 +711,9 @@ with col_sidebar:
         st.session_state.chat_history = []
         st.rerun()
 
+    if st.session_state.authenticated:
+        st.markdown('<small style="color: #9CA3AF;">Last refresh: ' + (st.session_state.last_refresh or 'Never') + '</small>', unsafe_allow_html=True)
+
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================================
