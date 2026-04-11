@@ -876,15 +876,102 @@ with col_thread:
         st.info("📭 Authenticate and refresh to view emails")
 
 # ============================================================================
-# RIGHT COLUMN: ASSISTANT SIDEBAR (Task 5 - to be implemented)
+# RIGHT COLUMN: ASSISTANT SIDEBAR
 # ============================================================================
 with col_assistant:
-    st.markdown("### 💬 Assistant")
-    st.info("Assistant features coming in Task 5")
-    # Task 5 will implement:
-    # - Ask about email
-    # - Summarize email
-    # - Draft reply
+    if st.session_state.authenticated and st.session_state.email_threads:
+        if 0 <= st.session_state.selected_thread_idx < len(st.session_state.email_threads):
+            selected_thread = st.session_state.email_threads[st.session_state.selected_thread_idx]
+
+            # Context indicator
+            st.markdown(f"📧 **Analyzing:** {selected_thread.main_topic[:40]}...")
+            st.markdown("---")
+
+            # Tabbed interface
+            tab_ask, tab_summarize, tab_draft = st.tabs(["💬 Ask", "📝 Summarize", "✉️ Draft"])
+
+            # ASK TAB
+            with tab_ask:
+                st.session_state.assistant_tab = "ask"
+                user_query = st.text_area(
+                    "Ask about this email:",
+                    placeholder="What was the main topic?",
+                    label_visibility="collapsed",
+                    height=100,
+                    key="ask_input"
+                )
+
+                if st.button("Ask", use_container_width=True, key="ask_button"):
+                    if user_query:
+                        context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else None
+                        if context:
+                            with st.spinner("Thinking..."):
+                                response = ask_question(user_query, context)
+                            st.session_state.chat_history.append({"role": "user", "content": user_query})
+                            st.session_state.chat_history.append({"role": "assistant", "content": response})
+                            st.rerun()
+
+                # Display chat history
+                if st.session_state.chat_history:
+                    st.markdown("**Conversation:**")
+                    for msg in st.session_state.chat_history:
+                        if msg["role"] == "user":
+                            st.markdown(f"**You:** {msg['content']}")
+                        else:
+                            st.markdown(f"**Assistant:** {msg['content']}")
+
+            # SUMMARIZE TAB
+            with tab_summarize:
+                st.session_state.assistant_tab = "summarize"
+                if st.button("Generate Summary", use_container_width=True, key="summarize_button"):
+                    context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else None
+                    if context:
+                        with st.spinner("Summarizing..."):
+                            summary = summarize_emails(context)
+                        st.markdown("**Summary:**")
+                        st.write(summary)
+
+                        if st.button("📋 Copy Summary", use_container_width=True, key="copy_summary"):
+                            st.success("Copied to clipboard!")
+
+            # DRAFT TAB
+            with tab_draft:
+                st.session_state.assistant_tab = "draft"
+                intent = st.text_area(
+                    "What do you want to say?",
+                    placeholder="e.g., Approve the budget",
+                    label_visibility="collapsed",
+                    height=100,
+                    key="draft_input"
+                )
+
+                tone = st.selectbox(
+                    "Tone:",
+                    ["Professional", "Collaborative", "Assertive", "Empathetic"],
+                    key="draft_tone"
+                )
+
+                if st.button("Generate Draft", use_container_width=True, key="draft_button"):
+                    if intent:
+                        context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else None
+                        if context:
+                            with st.spinner("Drafting..."):
+                                draft = generate_draft_reply(context, intent, tone.lower())
+                            st.markdown("**Your Draft:**")
+                            st.text_area(
+                                "Edit and copy:",
+                                value=draft,
+                                height=150,
+                                disabled=True,
+                                label_visibility="collapsed"
+                            )
+
+                            if st.button("📋 Copy Draft", use_container_width=True, key="copy_draft"):
+                                st.success("Copied to clipboard!")
+        else:
+            st.info("Select an email to analyze")
+    else:
+        st.info("📭 Authenticate to use assistant")
 
 # Footer
 st.markdown("---")
