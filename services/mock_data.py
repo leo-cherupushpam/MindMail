@@ -1,376 +1,270 @@
-from typing import List
-from services.models import EmailThread, EmailMessage
+"""
+Mock email data for MVP showcase and testing.
+Generates realistic professional email threads with various urgency levels and scenarios.
+"""
+
+from datetime import datetime, timedelta
+from services.models import EmailMessage, EmailThread
+from services.qa_service import analyze_sentiment
 
 
-def get_sample_threads() -> List[EmailThread]:
-    """Return 3 realistic multi-message email threads with sentiment arcs"""
+def get_sample_threads() -> list[EmailThread]:
+    """
+    Get a collection of realistic mock email threads for MVP showcase.
+    Includes various scenarios: urgent deadlines, feedback requests, project updates, etc.
 
-    # Thread 1: Q1 Budget Approval (urgent → cautious → collaborative)
+    Returns:
+        List of EmailThread objects with realistic data
+    """
+
+    now = datetime.now()
+
+    # Thread 1: Urgent project deadline
     thread1_messages = [
         EmailMessage(
-            sender="sarah@company.com",
-            recipient="cfo@company.com",
-            subject="Q1 Budget Approval - Sign-off Needed by Friday",
+            sender="sarah.chen@company.com",
+            recipient="you@company.com",
+            subject="URGENT: Q2 Roadmap Review Due Friday",
             body="""Hi,
 
-I've compiled the Q1 budget proposal with detailed projections across all departments. Here's the summary:
+Can you get me the final Q2 roadmap by Friday EOD? The exec team needs it for the board meeting Monday.
 
-- Sales: +12% YoY growth projection, assuming market expansion into 2 new regions
-- Marketing: -5% reduction, consolidating digital channels and reducing event spending
-- Operations: +3% for infrastructure upgrades and efficiency tools
-- Contingency Buffer: 8% of total budget
+Key sections needed:
+- Feature priorities (with dependencies)
+- Timeline with milestones
+- Resource allocation
+- Risk assessment
 
-All numbers are based on conservative market analysis and account for the recent headcount changes. The contingency buffer is higher than last year due to the new product launch uncertainties.
+This is blocking our strategy discussion, so it's critical we have this locked in.
 
-I need executive sign-off by close of business Friday to finalize vendor contracts and spending authorizations. Attached are the detailed spreadsheets with department breakdowns, historical comparisons, and vendor quotes.
-
-Please let me know if you need any clarifications or additional analysis.
-
-Best regards,
+Thanks,
 Sarah""",
-            timestamp="2026-04-08T09:15:00Z",
-            importance_level="high",
-            sentiment="positive",
-            is_reply=False
-        ),
-        EmailMessage(
-            sender="cfo@company.com",
-            recipient="sarah@company.com",
-            subject="RE: Q1 Budget Approval - Sign-off Needed by Friday",
-            body="""Sarah,
-
-Thanks for putting together a comprehensive proposal. The structure looks solid overall, and I appreciate the detailed departmental breakdowns. However, I do have some concerns.
-
-The 8% contingency buffer is notably higher than our historical average of 5-6%. While I understand the rationale about product launch uncertainties, I want to make sure we're not over-allocating and creating waste. Can you provide:
-
-1. Historical data on how often we've actually needed to tap into contingency reserves?
-2. What specifically about the product launch creates these additional risks?
-3. Are there other departments where we could tighten spending instead?
-
-I'm also curious about the Sales +12% projection given the current market conditions. Is this based on pipeline data or market assumptions?
-
-Let's schedule a call tomorrow morning if you can walk me through the contingency analysis. I want to move forward, but need to understand the rationale better before committing to 8%.
-
-Thanks,
-David""",
-            timestamp="2026-04-08T14:30:00Z",
-            importance_level="high",
-            sentiment="neutral",
-            is_reply=True
-        ),
-        EmailMessage(
-            sender="sarah@company.com",
-            recipient="cfo@company.com",
-            subject="RE: Q1 Budget Approval - Sign-off Needed by Friday",
-            body="""David,
-
-Excellent questions - I anticipated these and have prepared detailed analysis. Please find attached:
-
-Attachment 1: Historical Contingency Analysis (Last 3 Years)
-- Q4 2025: Tapped 7.2% of contingency reserve (product bug fixes)
-- Q3 2025: Tapped 6.1% of contingency reserve (vendor rate increase)
-- Q2 2025: Tapped 3.8% of contingency reserve (hiring freeze impact)
-- Average utilization: 5.7% over 12 months
-
-The pattern shows we're consistently at or above 6% when accounting for product launches, vendor volatility, and market shifts. Given we have a major product launch in Q1 and recent vendor rate increases across the industry, 8% provides appropriate buffer without being excessive.
-
-Attachment 2: Sales Projection Validation
-The +12% is based on:
-- Confirmed pipeline from enterprise sales team: $2.3M (conservative 60% close rate)
-- SMB market expansion (2 new regions): $800K projected
-- This is tied to actual customer conversations, not market assumptions
-
-Attachment 3: Tightening Options
-I reviewed alternatives:
-- Marketing: Could reduce to -7% but risks brand awareness during expansion
-- Operations: Items are necessary for infrastructure scaling
-- Recommended approach: Accept the 8% contingency as data-driven
-
-Can you review the attachments and let's talk through tomorrow? I'm confident this approach balances prudent risk management with business growth needs.
-
-Best,
-Sarah""",
-            timestamp="2026-04-09T08:45:00Z",
-            importance_level="high",
-            sentiment="positive",
-            is_reply=True
-        ),
-    ]
-
-    thread1 = EmailThread(
-        messages=thread1_messages,
-        participants=["sarah@company.com", "cfo@company.com"],
-        main_topic="Q1 Budget Approval with Contingency Buffer",
-        underlying_need="Secure executive sign-off for Q1 spending while addressing concerns about contingency allocation",
-        urgency="urgent",
-        action_items=[
-            "Review historical contingency analysis and vendor rate data",
-            "Validate sales pipeline assumptions with enterprise team",
-            "Schedule follow-up call to finalize budget sign-off",
-            "Execute vendor contracts upon approval"
-        ]
-    )
-
-    # Thread 2: Product Feature Request (positive → cautious → collaborative)
-    thread2_messages = [
-        EmailMessage(
-            sender="pm@company.com",
-            recipient="engineering@company.com",
-            subject="Feature Request: Advanced Analytics Dashboard - Q2 Release Priority",
-            body="""Engineering Team,
-
-We've received strong customer feedback and internal requests for an advanced analytics dashboard. This is a high-priority initiative for Q2 and I'd like to propose starting Monday if possible.
-
-Feature Requirements:
-1. Real-time metrics display (updated every 30 seconds minimum)
-2. Custom report builder (drag-and-drop interface for selecting metrics)
-3. Data export functionality (CSV, PDF, Excel formats)
-4. Configurable dashboards (users can save/share custom views)
-5. Historical trend analysis (12-month lookback capability)
-
-Timeline: 6 weeks from start to launch (first week of May)
-Resources: 2 FE engineers, 1 BE engineer, 1 QA engineer (proposed)
-Target: Enterprise tier customers only (reduces scope compared to full rollout)
-
-This directly addresses our top 3 customer requests and will help with retention in the enterprise segment. Our sales team has already identified 5 prospects waiting on this feature.
-
-Can we schedule time tomorrow to go through the technical approach? I want to make sure we align on architecture before kicking off.
-
-Thanks,
-Maria""",
-            timestamp="2026-04-08T10:00:00Z",
-            importance_level="high",
-            sentiment="positive",
-            is_reply=False
-        ),
-        EmailMessage(
-            sender="engineering@company.com",
-            recipient="pm@company.com",
-            subject="RE: Feature Request: Advanced Analytics Dashboard - Q2 Release Priority",
-            body="""Maria,
-
-Thanks for the detailed requirements. I've reviewed the proposal with the team, and we have some concerns about the timeline and technical implications:
-
-Timeline Concerns:
-- 6 weeks is aggressive for this scope. Realistically, core feature development is 8-10 weeks
-- Real-time metrics (30-second refresh) requires significant DB optimization work - we haven't done this before
-- Data export with compliance (PDF, Excel) adds regulatory complexity we need to validate
-
-Technical Risks:
-- Real-time data querying at scale could cause performance degradation on existing features
-- CSV is straightforward, but PDF/Excel require third-party library integration and extensive testing
-- Custom report builder UI is complex and will need 2+ weeks of iteration
-
-Proposal:
-We can deliver a solid MVP in 6 weeks if we scope down:
-1. Core dashboard with top 5 most-requested metrics (fixed, not custom)
-2. Basic CSV export only (no PDF/Excel initially)
-3. No real-time refresh initially - hourly batch updates instead
-4. Pre-built templates instead of drag-and-drop builder
-
-This would still address 80% of customer needs while reducing risk. We'd need security review for data export before launch.
-
-Can we discuss tradeoffs? Happy to break down effort estimates for each feature component.
-
-Thanks,
-Alex""",
-            timestamp="2026-04-08T15:45:00Z",
-            importance_level="high",
-            sentiment="neutral",
-            is_reply=True
-        ),
-        EmailMessage(
-            sender="pm@company.com",
-            recipient="engineering@company.com",
-            subject="RE: Feature Request: Advanced Analytics Dashboard - Q2 Release Priority",
-            body="""Alex,
-
-Thank you for the honest assessment. I appreciate the realistic timeline and the technical risks you've flagged. Let's go with the MVP approach - it's actually better for customer adoption anyway.
-
-Revised Scope Agreement:
-1. Core dashboard with top 5 metrics (based on customer feedback analysis we did last month)
-2. CSV export only for now (can add PDF/Excel in Q3 based on usage)
-3. Hourly batch updates instead of real-time (still a major improvement over no dashboard)
-4. Pre-built templates (we can iterate on builder in Q3)
-
-This still addresses the core customer need and gets us to market faster. Sales can work with the hourly update limitation - most customers are fine with daily/hourly reporting.
-
-Timeline: Let's target 6 weeks still, with emphasis on quality over polish. Security review for data export - I'll coordinate with compliance this week.
-
-Action Items:
-- Alex: Provide detailed effort breakdown by component by EOD Thursday
-- Me: Finalize top 5 metrics list and templates with product team
-- Both: Schedule architecture review for Monday 2pm
-
-Thanks for pushing back on scope - this is the right approach.
-
-Maria""",
-            timestamp="2026-04-09T09:30:00Z",
-            importance_level="high",
-            sentiment="positive",
-            is_reply=True
-        ),
-    ]
-
-    thread2 = EmailThread(
-        messages=thread2_messages,
-        participants=["pm@company.com", "engineering@company.com"],
-        main_topic="Advanced Analytics Dashboard Feature Request for Q2 Release",
-        underlying_need="Deliver analytics capability for enterprise customers while managing technical risks and timeline constraints",
-        urgency="urgent",
-        action_items=[
-            "Finalize top 5 metrics based on customer feedback",
-            "Provide detailed effort breakdown by feature component",
-            "Schedule architecture review meeting",
-            "Coordinate security review for data export functionality",
-            "Validate hourly batch update approach with sales team"
-        ]
-    )
-
-    # Thread 3: Project Status - Performance Issue (cautious → negative → collaborative)
-    thread3_messages = [
-        EmailMessage(
-            sender="lead@company.com",
-            recipient="stakeholders@company.com",
-            subject="Web Platform Rebuild - March Status Update & Critical Performance Finding",
-            body="""Team,
-
-Here's the March status update on the Web Platform Rebuild initiative:
-
-Progress to Date:
-- API redesign: COMPLETE (100% - all endpoints refactored and tested)
-- Component library: IN PROGRESS (70% - core components done, utilities and helpers remaining)
-- Performance optimization: IDENTIFIED ISSUE (see below)
-
-Critical Issue Discovered:
-During load testing this week, we identified a performance regression in pages with large datasets. Specifically:
-
-- Dashboard pages with 10K+ records: Response time degraded from 1.2s to 3.8s
-- Report generation with complex queries: Now timing out (previously 4s, now >30s)
-- Root cause: New API design isn't optimized for bulk data queries - needs caching layer and query optimization
-
-This is significant because our enterprise customers rely heavily on these features for reporting and analytics.
-
-Recommendation:
-I recommend we invest 2 additional weeks in performance optimization before completing the rebuild. Shipping with known performance regressions creates major adoption friction and customer support burden. The extra time will:
-
-1. Implement Redis caching layer for frequently accessed data
-2. Optimize bulk query endpoints
-3. Add query result pagination (currently fetches all data)
-4. Perform full load testing at scale
-
-Revised Timeline: Instead of March completion, targeting end of April (2 weeks additional).
-
-The alternative of "ship and patch later" is risky because:
-- Performance affects user perception of quality
-- Performance issues are harder to debug after release
-- Enterprise customers will encounter issues immediately
-- Patches would still require the same 2-week effort
-
-This is a quality vs. speed decision, but I believe absorbing the 2 weeks ensures success.
-
-Detailed analysis attached. Happy to discuss.
-
-Best,
-James""",
-            timestamp="2026-04-07T11:00:00Z",
-            importance_level="high",
-            sentiment="neutral",
-            is_reply=False
-        ),
-        EmailMessage(
-            sender="stakeholders@company.com",
-            recipient="lead@company.com",
-            subject="RE: Web Platform Rebuild - March Status Update & Critical Performance Finding",
-            body="""James,
-
-This is concerning. The performance regression is problematic, but so is pushing the timeline out another 2 weeks. We've already had this project extending beyond original estimates.
-
-Key Questions:
-1. Is there any way to parallelize the optimization work while component library finishes?
-2. What's the actual business impact of shipping with the performance issue and patching iteratively?
-3. Have we considered a phased rollout - new API to subset of users first?
-4. What's the risk if we ship in 2 weeks with the optimization work still ongoing?
-
-I understand quality is important, but we also need to balance time-to-market. Enterprise customers have been waiting for this update. A slightly slower performance for 2 weeks might be acceptable if we communicate clearly.
-
-The 2-week extension puts us into May, which has other strategic initiatives scheduled. This needs executive review.
-
-Can you send me:
-- Cost impact of 2-week delay
-- Risk assessment of shipping with performance issues
-- Effort breakdown for optimization work (which pieces are critical, which can wait)
-
-This requires a decision at the executive level.
-
-Thanks,
-Director""",
-            timestamp="2026-04-07T15:30:00Z",
+            timestamp=(now - timedelta(hours=2)).isoformat(),
             importance_level="high",
             sentiment="negative",
+            is_reply=False
+        ),
+        EmailMessage(
+            sender="you@company.com",
+            recipient="sarah.chen@company.com",
+            subject="RE: URGENT: Q2 Roadmap Review Due Friday",
+            body="""Sarah,
+
+I'll have a first draft ready by Wednesday. Can you review earlier in the week so I have time to incorporate feedback?
+
+—You""",
+            timestamp=(now - timedelta(hours=1)).isoformat(),
+            importance_level="high",
+            sentiment="neutral",
+            is_reply=True
+        ),
+    ]
+    thread1 = EmailThread(
+        messages=thread1_messages,
+        participants=["sarah.chen@company.com", "you@company.com"],
+        main_topic="Q2 Roadmap Review Due Friday",
+        underlying_need="Get project roadmap completed and reviewed before board meeting",
+        urgency="urgent",
+        action_items=["Draft Q2 roadmap", "Get exec feedback"]
+    )
+
+    # Thread 2: Collaborative design feedback
+    thread2_messages = [
+        EmailMessage(
+            sender="alex.patel@company.com",
+            recipient="you@company.com",
+            subject="Design Review - New Dashboard Mockups",
+            body="""Hey!
+
+I've put together some initial mockups for the new analytics dashboard. Would love your thoughts before we start development.
+
+Key questions:
+1. Does the layout make sense for your use cases?
+2. Are we missing any critical metrics?
+3. Should we add dark mode support?
+
+Check them out here: [Figma link]
+
+Looking forward to hearing what you think!
+
+Alex""",
+            timestamp=(now - timedelta(days=1)).isoformat(),
+            importance_level="normal",
+            sentiment="positive",
+            is_reply=False
+        ),
+        EmailMessage(
+            sender="you@company.com",
+            recipient="alex.patel@company.com",
+            subject="RE: Design Review - New Dashboard Mockups",
+            body="""Alex,
+
+The mockups look great! I have a few suggestions:
+
+1. The layout is intuitive, but could we add a collapsed sidebar option?
+2. Missing: export to PDF functionality for reports
+3. Dark mode would be awesome, but maybe for v2?
+
+Let me know when you want to sync up to discuss.
+
+—You""",
+            timestamp=(now - timedelta(hours=16)).isoformat(),
+            importance_level="normal",
+            sentiment="positive",
+            is_reply=True
+        ),
+    ]
+    thread2 = EmailThread(
+        messages=thread2_messages,
+        participants=["alex.patel@company.com", "you@company.com"],
+        main_topic="Design Review - New Dashboard Mockups",
+        underlying_need="Get feedback on dashboard design before development starts",
+        urgency="normal",
+        action_items=["Review mockups", "Provide design feedback"]
+    )
+
+    # Thread 3: Status update with hidden concern
+    thread3_messages = [
+        EmailMessage(
+            sender="jessica.lee@company.com",
+            recipient="you@company.com",
+            subject="RE: API Performance Issues",
+            body="""Hi,
+
+Thanks for checking in. We've made progress on the latency issue—it's down to 200ms from 800ms. However, we're seeing some inconsistent results in production that we're still investigating.
+
+We should have this fully resolved by Wednesday, but wanted to flag that there might be a slight delay if we hit any blockers with the database layer.
+
+Will keep you updated.
+
+Jessica""",
+            timestamp=(now - timedelta(days=2)).isoformat(),
+            importance_level="high",
+            sentiment="neutral",
             is_reply=True
         ),
         EmailMessage(
-            sender="lead@company.com",
-            recipient="stakeholders@company.com",
-            subject="RE: Web Platform Rebuild - March Status Update & Critical Performance Finding",
-            body="""Director,
+            sender="you@company.com",
+            recipient="jessica.lee@company.com",
+            subject="RE: API Performance Issues",
+            body="""Jessica,
 
-I understand the timeline pressure. Let me address your questions directly:
+Thanks for the update. Wednesday works. Let me know if you need any help unblocking the database layer—I have some bandwidth.
 
-Parallelization:
-- Component library and optimization work use different team members, so we can run in parallel
-- However, we can't optimize endpoints until component library is integrated (would optimize the old API)
-- Real constraint: Both need to be done before launch testing, which requires sequence
+Keep me posted on the inconsistencies you're seeing.
 
-Shipping with Performance Issues - Risk Analysis:
-- HIGH RISK approach: "Ship and patch later"
-  * Enterprise customers will immediately hit slowness on their most-critical workflows
-  * Performance creates perception of "broken" even if technically functional
-  * Support escalations on performance issues are highest-priority
-  * Post-launch performance fixes still require full regression testing and deployment
-  * Customer frustration impacts retention and upsell opportunities
-
-- Cost: The 2-week optimization effort would STILL be required post-launch, just with added support load
-- Phased rollout: Not viable - our architecture is monolithic, would need code branching
-
-Reality Check:
-- We spend 2 weeks now, or we spend 2 weeks later PLUS support costs and reputation damage
-- Enterprise contracts often have performance SLAs - we'd be breaching those
-- This isn't an opinion - it's engineering reality. Performance debt always comes due
-
-Timeline Impact:
-- Yes, this pushes to end of April
-- But shipping broken performance and then fixing it also takes to end of April or later
-- The difference: one approach delivers a quality product, the other ships a problem
-
-I respectfully recommend absorbing the 2 weeks. Happy to brief executive team on the technical tradeoffs if that helps with the decision.
-
-Detailed cost/risk breakdown attached.
-
-James""",
-            timestamp="2026-04-08T10:15:00Z",
+—You""",
+            timestamp=(now - timedelta(days=1, hours=18)).isoformat(),
             importance_level="high",
             sentiment="positive",
             is_reply=True
         ),
     ]
-
     thread3 = EmailThread(
         messages=thread3_messages,
-        participants=["lead@company.com", "stakeholders@company.com"],
-        main_topic="Web Platform Rebuild - Performance Regression and Timeline Impact",
-        underlying_need="Secure stakeholder agreement on quality-vs-speed tradeoff for discovered performance issue",
+        participants=["jessica.lee@company.com", "you@company.com"],
+        main_topic="API Performance Issues",
+        underlying_need="Resolve API latency and database consistency issues before launch",
         urgency="urgent",
-        action_items=[
-            "Complete component library integration",
-            "Implement Redis caching layer for bulk queries",
-            "Optimize API endpoints for large dataset queries",
-            "Add pagination to query results",
-            "Complete full load testing at scale",
-            "Executive decision on quality vs. timeline tradeoff",
-            "Communicate revised timeline to enterprise customers"
-        ]
+        action_items=["Fix API latency", "Resolve database inconsistencies"]
     )
 
-    return [thread1, thread2, thread3]
+    # Thread 4: Meeting request with implicit conflict
+    thread4_messages = [
+        EmailMessage(
+            sender="mike.garcia@company.com",
+            recipient="you@company.com",
+            subject="Budget Review Meeting - Tuesday 2pm?",
+            body="""Hi,
+
+Can we schedule the budget review for Q3? I know we just finished Q2, but finance needs our preliminary numbers ASAP for planning.
+
+A few items we should cover:
+- Team headcount needs
+- Tool/vendor budgets
+- Infrastructure costs
+- Contingency
+
+Would Tuesday 2pm work for you? If not, let me know what times work better.
+
+Thanks,
+Mike""",
+            timestamp=(now - timedelta(hours=3)).isoformat(),
+            importance_level="normal",
+            sentiment="neutral",
+            is_reply=False
+        ),
+    ]
+    thread4 = EmailThread(
+        messages=thread4_messages,
+        participants=["mike.garcia@company.com", "you@company.com"],
+        main_topic="Budget Review Meeting - Tuesday 2pm?",
+        underlying_need="Schedule budget planning meeting and prepare financial projections",
+        urgency="normal",
+        action_items=["Schedule budget meeting", "Prepare budget numbers"]
+    )
+
+    # Thread 5: Positive feedback and recognition
+    thread5_messages = [
+        EmailMessage(
+            sender="priya.sharma@company.com",
+            recipient="you@company.com",
+            subject="Great work on the customer success docs!",
+            body="""Hi there!
+
+I just reviewed the onboarding documentation you created, and it's excellent. The step-by-step walkthroughs are so clear, and the screenshots are super helpful. Our customers have been giving great feedback.
+
+This is exactly what we needed to reduce support tickets. Really impressed with the quality.
+
+Keep up the great work!
+
+Priya""",
+            timestamp=(now - timedelta(days=3)).isoformat(),
+            importance_level="normal",
+            sentiment="positive",
+            is_reply=False
+        ),
+    ]
+    thread5 = EmailThread(
+        messages=thread5_messages,
+        participants=["priya.sharma@company.com", "you@company.com"],
+        main_topic="Great work on the customer success docs!",
+        underlying_need="Recognition and feedback on documentation quality",
+        urgency="low",
+        action_items=["Acknowledge feedback"]
+    )
+
+    # Thread 6: Low priority FYI with data
+    thread6_messages = [
+        EmailMessage(
+            sender="devops@company.com",
+            recipient="you@company.com",
+            subject="FYI: Weekly Infrastructure Report",
+            body="""Weekly infrastructure status:
+
+✓ Uptime: 99.98% (target: 99.95%)
+✓ API response time: 185ms avg (target: <200ms)
+⚠ Database disk usage: 78% (alert at 85%)
+✓ Cache hit rate: 92% (target: >90%)
+
+No incidents this week. All systems nominal.
+
+See dashboard: [link]
+
+—DevOps Team""",
+            timestamp=(now - timedelta(days=4)).isoformat(),
+            importance_level="normal",
+            sentiment="positive",
+            is_reply=False
+        ),
+    ]
+    thread6 = EmailThread(
+        messages=thread6_messages,
+        participants=["devops@company.com", "you@company.com"],
+        main_topic="Weekly Infrastructure Report",
+        underlying_need="Stay informed on system health and performance",
+        urgency="low",
+        action_items=["Monitor disk usage"]
+    )
+
+    return [thread1, thread2, thread3, thread4, thread5, thread6]
