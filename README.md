@@ -177,33 +177,6 @@ Used for quality-critical, complex reasoning tasks:
 
 **Why GPT-5**: Better quality for tasks that directly impact user experience
 
-## Future Enhancements
-
-- [ ] Gmail API integration for real inbox
-- [ ] Email search and filtering
-- [ ] Custom email templates
-- [ ] Sentiment tracking over time
-- [ ] Integration with calendar for deadline awareness
-- [ ] Team collaboration features
-- [ ] Email scheduling
-- [ ] Advanced analytics on email patterns
-- [ ] Custom model fine-tuning
-
-## MVP Validation
-
-The mock data comprehensively validates all MVP features:
-
-- ✅ **Email Browsing**: Multiple threads with varied topics
-- ✅ **Thread Viewing**: Full conversation context with multiple messages
-- ✅ **Summarization**: Long chains (5+ messages) perfect for testing
-- ✅ **Q&A**: Diverse contexts requiring nuanced understanding
-- ✅ **Draft Generation**: Clear reply opportunities with decision points
-- ✅ **Urgency Detection**: Critical, urgent, high, normal, low levels
-- ✅ **Action Items**: Explicit and implicit actions across threads
-- ✅ **Sentiment Analysis**: Positive, neutral, negative with sentiment arcs
-- ✅ **Implicit Needs**: Hidden concerns and underlying requirements
-- ✅ **Professional Contexts**: Sales, engineering, product, HR, leadership
-
 ## Development
 
 ### Code Style
