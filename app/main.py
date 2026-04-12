@@ -3,7 +3,6 @@ import sys
 import html
 import streamlit as st
 from datetime import datetime
-import streamlit_card as stc
 
 # Add parent directory to path so we can import services module
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
