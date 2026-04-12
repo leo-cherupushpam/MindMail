@@ -5,7 +5,7 @@ from services.models import EmailThread
 
 def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: str = "normal", action_items: list = None) -> str:
     """
-    Render a single email thread as an HTML card with urgency indicators.
+    Render a single email thread as a clean, Gmail-like card.
 
     Args:
         thread: EmailThread object
@@ -22,7 +22,6 @@ def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: s
     sender = thread.messages[0].sender if thread.messages else "Unknown"
     subject = thread.main_topic
     preview = thread.messages[0].body[:80] + "..." if thread.messages and thread.messages[0].body else "No content"
-    message_count = len(thread.messages)
 
     # Parse and format timestamp from ISO format
     if thread.messages and thread.messages[0].timestamp:
@@ -35,64 +34,46 @@ def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: s
         timestamp = "Unknown"
 
     # Truncate subject if too long
-    if len(subject) > 40:
-        subject = subject[:37] + "..."
+    if len(subject) > 50:
+        subject = subject[:47] + "..."
 
     # Escape all user data to prevent XSS vulnerabilities
     sender = html.escape(sender)
     subject = html.escape(subject)
     preview = html.escape(preview)
 
-    # Determine accent color and icon based on urgency
-    if "urgent" in urgency.lower():
-        accent_color = "#EF4444"  # Red
-        urgency_icon = "🔴"
-    elif action_items:
-        accent_color = "#F59E0B"  # Orange
-        urgency_icon = "📌"
-    else:
-        accent_color = "#10B981"  # Green
-        urgency_icon = "📄"
-
     # Determine card styling based on selection state
     if is_selected:
-        background = "#F0F7FF"
-        border = f"4px solid #2563EB"
-        shadow = "0 10px 25px rgba(37, 99, 235, 0.2)"
+        background = "#E3F2FD"
+        border = "1px solid #2563EB"
+        shadow = "0 2px 8px rgba(37, 99, 235, 0.15)"
     else:
         background = "white"
-        border = f"4px solid {accent_color}; border-right: 1px solid #E5E7EB; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;"
-        shadow = "0 1px 3px rgba(0,0,0,0.08)"
+        border = "1px solid #E5E7EB"
+        shadow = "0 1px 2px rgba(0,0,0,0.05)"
 
     html_content = f"""
-    <div class="email-card" style="
-        border-left: {border};
+    <div style="
         background-color: {background};
-        border-radius: 8px;
-        padding: 16px;
-        margin: 8px;
+        border: {border};
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin: 8px 0;
         cursor: pointer;
         box-shadow: {shadow};
-        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
+        transition: all 150ms ease;
     ">
-        <!-- Sender with urgency icon -->
-        <div style="font-weight: 700; font-size: 16px; color: #111827; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-            <span>{urgency_icon}</span>
-            <span>{sender}</span>
+        <!-- Sender (bold) -->
+        <div style="font-weight: 600; font-size: 15px; color: #111827; margin-bottom: 4px;">{sender}</div>
+
+        <!-- Subject and timestamp on same line -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+            <div style="font-size: 14px; color: #374151; flex: 1; margin-right: 12px; line-height: 1.3;">{subject}</div>
+            <div style="font-size: 12px; color: #9CA3AF; white-space: nowrap;">{timestamp}</div>
         </div>
 
-        <!-- Subject (prominent) -->
-        <div style="font-weight: 600; font-size: 14px; color: #111827; margin-bottom: 8px; line-height: 1.4;">{subject}</div>
-
-        <!-- Preview -->
-        <div style="font-size: 13px; color: #4B5563; margin-bottom: 12px; line-height: 1.4;">{preview}</div>
-
-        <!-- Footer metadata -->
-        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9CA3AF;">
-            <span>{timestamp}</span>
-            <span>{message_count} message{'s' if message_count != 1 else ''}</span>
-        </div>
+        <!-- Preview (small gray) -->
+        <div style="font-size: 13px; color: #6B7280; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{preview}</div>
     </div>
     """
     return html_content
@@ -100,7 +81,7 @@ def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: s
 
 def format_thread_message(sender: str, email: str, timestamp: str, body: str) -> str:
     """
-    Render a single message in a thread.
+    Render a single message in a thread (Gmail-like format).
 
     Args:
         sender: Sender name
@@ -125,12 +106,32 @@ def format_thread_message(sender: str, email: str, timestamp: str, body: str) ->
     body = html.escape(body)
 
     html_content = f"""
-    <div style="margin-bottom: 24px;">
-        <div style="font-weight: 700; font-size: 16px; color: #111827;">{sender}</div>
-        <div style="font-size: 14px; color: #4B5563;">{email}</div>
-        <div style="font-size: 14px; color: #9CA3AF; margin-bottom: 12px;">{formatted_timestamp}</div>
-        <div style="font-size: 16px; color: #111827; line-height: 1.75; white-space: pre-wrap; word-break: break-word;">{body}</div>
-        <hr style="margin: 24px 0; border: none; border-top: 1px solid #E5E7EB;">
+    <div style="
+        background-color: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 16px;
+    ">
+        <!-- Message header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div>
+                <div style="font-weight: 600; font-size: 15px; color: #111827;">{sender}</div>
+                <div style="font-size: 13px; color: #6B7280;">{email}</div>
+            </div>
+            <div style="font-size: 12px; color: #9CA3AF; text-align: right; white-space: nowrap;">{formatted_timestamp}</div>
+        </div>
+
+        <!-- Message body -->
+        <div style="
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border-top: 1px solid #F3F4F6;
+            padding-top: 12px;
+        ">{body}</div>
     </div>
     """
     return html_content

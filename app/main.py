@@ -873,21 +873,20 @@ with col_list:
             urgency = thread.urgency if hasattr(thread, 'urgency') else "normal"
             action_items = thread.action_items if hasattr(thread, 'action_items') else []
 
-            # Render the premium card HTML
+            # Render the card HTML and make it clickable
             html_card = format_email_card(thread, is_selected, urgency, action_items)
 
-            # Create columns: card + minimal button
-            col_card, col_btn = st.columns([20, 1])
+            # Create columns: card content + select button
+            col_card, col_select = st.columns([18, 2])
 
             with col_card:
                 st.markdown(html_card, unsafe_allow_html=True)
 
-            with col_btn:
-                # Hidden button for click handler (icon only for minimal footprint)
+            with col_select:
+                # Select button for this email
                 if st.button(
-                    "→",
+                    "View" if not is_selected else "✓ Selected",
                     key=f"select_{actual_idx}",
-                    help="View thread",
                     use_container_width=True
                 ):
                     st.session_state.update({'selected_thread_idx': actual_idx})
