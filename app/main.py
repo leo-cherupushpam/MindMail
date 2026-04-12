@@ -563,7 +563,7 @@ st.markdown("""
        ============================================ */
     .main-grid {
         display: grid;
-        grid-template-columns: 1fr 2.75fr 1.25fr;
+        grid-template-columns: 1fr 1.5fr 1fr;
         gap: 0;
         height: calc(100vh - 80px);
         width: 100%;
@@ -590,10 +590,13 @@ st.markdown("""
     }
 
     .thread-messages-container {
-        flex: 1;
+        max-height: 350px;
         overflow-y: auto;
         padding-right: 8px;
         margin-right: -8px;
+        border-bottom: 1px solid #E5E7EB;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
     }
 
     .thread-messages-container::-webkit-scrollbar {
@@ -617,6 +620,102 @@ st.markdown("""
         background-color: #F9FAFB;
         border-left: 1px solid #E5E7EB;
         padding: 16px;
+    }
+
+    /* ============================================
+       ASSISTANT PANEL - REFINED STYLING
+       ============================================ */
+
+    /* Output card styling */
+    .output-card {
+        background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 12px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        line-height: 1.6;
+        color: #111827;
+        white-space: pre-wrap;
+        word-break: break-word;
+        transition: box-shadow 150ms ease;
+    }
+
+    .output-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Success indicator */
+    .success-message {
+        color: #059669;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        animation: slideDown 200ms ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Refined button styling */
+    .stButton > button {
+        transition: all 150ms ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .stButton > button:hover:not(:disabled) {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .stButton > button:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    /* Section divider */
+    .section-divider {
+        border: none;
+        border-top: 1px solid #E5E7EB;
+        margin: 16px 0;
+        opacity: 0.8;
+    }
+
+    /* Refined text area styling */
+    .stTextArea textarea {
+        border-radius: 6px !important;
+        border: 1px solid #E5E7EB !important;
+        transition: border-color 150ms ease, box-shadow 150ms ease !important;
+    }
+
+    .stTextArea textarea:focus {
+        border-color: #2563EB !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    }
+
+    /* Radio button group spacing */
+    .stRadio > div {
+        gap: 16px;
+    }
+
+    /* Expander refinement */
+    .stExpander {
+        border: 1px solid #E5E7EB !important;
+        border-radius: 6px !important;
+        transition: box-shadow 150ms ease !important;
+    }
+
+    .stExpander:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
     }
 
     /* Hide Streamlit's native sidebar and footer */
@@ -872,19 +971,19 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
-# Create 3-column layout
-col_list, col_thread, col_assistant = st.columns([1, 2.75, 1.25], gap="small")
+# Create 3-column layout: Gmail inbox (left) | Thread (middle) | Assistant sidebar (right)
+col_list, col_thread, col_assistant = st.columns([1, 1.5, 1], gap="small")
 
 # LEFT COLUMN: EMAIL LIST
 with col_list:
     st.markdown("### 📧 Inbox")
 
-    if st.session_state.authenticated and st.session_state.email_threads:
+    if st.session_state.sample_threads:
         # Filter threads by search query
-        filtered_threads = st.session_state.email_threads
+        filtered_threads = st.session_state.sample_threads
         if st.session_state.search_query:
             filtered_threads = [
-                t for t in st.session_state.email_threads
+                t for t in st.session_state.sample_threads
                 if st.session_state.search_query.lower() in t.main_topic.lower()
                 or any(st.session_state.search_query.lower() in msg.sender.lower() for msg in t.messages)
             ]
@@ -892,7 +991,7 @@ with col_list:
         # Render email list with clickable cards
         for display_idx, thread in enumerate(filtered_threads):
             # Find the actual index in the unfiltered list
-            actual_idx = st.session_state.email_threads.index(thread)
+            actual_idx = st.session_state.sample_threads.index(thread)
             is_selected = (actual_idx == st.session_state.selected_thread_idx)
 
             # Get urgency from enriched context if available
@@ -902,34 +1001,28 @@ with col_list:
                 if enriched.urgency_assessment:
                     urgency = enriched.urgency_assessment
 
-            # Render email card with clickable button
+            # Render email card
             html_card = format_email_card(thread, is_selected, urgency)
+            st.markdown(html_card, unsafe_allow_html=True)
 
-            # Create columns: card takes most space, button in narrow column
-            col_card, col_btn = st.columns([20, 1], gap="small")
-
-            with col_card:
-                st.markdown(html_card, unsafe_allow_html=True)
-
-            with col_btn:
-                if st.button("·", key=f"select_{actual_idx}", use_container_width=True):
-                    st.session_state.selected_thread_idx = actual_idx
-                    st.session_state.chat_history = []
-                    st.rerun()
+            # Hidden button (empty label, styled minimally)
+            if st.button("", key=f"select_{actual_idx}", use_container_width=True):
+                st.session_state.selected_thread_idx = actual_idx
+                st.session_state.chat_history = []
+                st.rerun()
     else:
         st.info("📭 No emails. Click 'Refresh' to fetch emails.")
 
 # ============================================================================
-# CENTER COLUMN: THREAD VIEWER (Task 4 - to be implemented)
+# MIDDLE COLUMN: THREAD VIEWER
 # ============================================================================
 with col_thread:
     st.markdown("### 📧 Email Thread")
 
-    if st.session_state.authenticated and st.session_state.email_threads:
-        if 0 <= st.session_state.selected_thread_idx < len(st.session_state.email_threads):
-            selected_thread = st.session_state.email_threads[st.session_state.selected_thread_idx]
+    if st.session_state.sample_threads:
+        if 0 <= st.session_state.selected_thread_idx < len(st.session_state.sample_threads):
+            selected_thread = st.session_state.sample_threads[st.session_state.selected_thread_idx]
 
-            # Thread header
             st.markdown(f"## {selected_thread.main_topic}")
 
             # Calculate date range from messages
@@ -948,12 +1041,6 @@ with col_thread:
             st.caption(f"{len(selected_thread.messages)} messages from {date_range}")
             st.caption(f"From: {', '.join(selected_thread.participants)}")
             st.markdown("---")
-
-            # Display context panel with urgency, sentiment, needs, participants
-            if st.session_state.enriched_contexts and 0 <= st.session_state.selected_thread_idx < len(st.session_state.enriched_contexts):
-                enriched = st.session_state.enriched_contexts[st.session_state.selected_thread_idx]
-                context_html = format_context_panel(enriched)
-                st.html(context_html)
 
             # Collect all messages into a scrollable container
             messages_html = []
@@ -974,23 +1061,23 @@ with col_thread:
             """
             st.html(container_html)
 
-            # Update enriched context for selected thread (for Task 5 - assistant sidebar)
+            # Update enriched context for selected thread
             enriched = st.session_state.analyzer.analyze_thread(selected_thread)
             st.session_state.selected_enriched_context = enriched
         else:
             st.info("Select an email thread from the list")
     else:
-        st.info("📭 Authenticate and refresh to view emails")
+        st.info("📭 No emails. Click 'Refresh' to fetch emails.")
 
 # ============================================================================
-# RIGHT COLUMN: DRAFT ASSISTANT
+# RIGHT COLUMN: ASSISTANT SIDEBAR
 # ============================================================================
 with col_assistant:
-    if st.session_state.authenticated and st.session_state.email_threads:
-        if 0 <= st.session_state.selected_thread_idx < len(st.session_state.email_threads):
-            selected_thread = st.session_state.email_threads[st.session_state.selected_thread_idx]
+    if st.session_state.sample_threads:
+        if 0 <= st.session_state.selected_thread_idx < len(st.session_state.sample_threads):
+            selected_thread = st.session_state.sample_threads[st.session_state.selected_thread_idx]
 
-            # Feature buttons - Draft and Summarize
+            # ========== ASSISTANT FEATURES ==========
             st.markdown("### How can I help?")
             col_draft_btn, col_summarize_btn = st.columns(2, gap="small")
 
@@ -1076,16 +1163,7 @@ with col_assistant:
                                     # Display draft
                                     st.markdown("**Your Draft:**")
                                     draft_html = f"""
-                                    <div style="
-                                        background-color: #F9FAFB;
-                                        border: 1px solid #E5E7EB;
-                                        border-radius: 6px;
-                                        padding: 16px;
-                                        margin: 16px 0;
-                                        line-height: 1.6;
-                                        color: #111827;
-                                        white-space: pre-wrap;
-                                    ">{html.escape(draft)}</div>
+                                    <div class="output-card">{html.escape(draft)}</div>
                                     """
                                     st.html(draft_html)
 
@@ -1118,7 +1196,10 @@ with col_assistant:
 
                             if summary and not summary.startswith("Error:"):
                                 st.markdown("**Summary:**")
-                                st.write(summary)
+                                summary_html = f"""
+                                <div class="output-card">{html.escape(summary)}</div>
+                                """
+                                st.html(summary_html)
 
                                 # Copy button
                                 col1, col2 = st.columns(2, gap="small")

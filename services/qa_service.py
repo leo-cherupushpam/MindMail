@@ -1,5 +1,10 @@
+import os
+from dotenv import load_dotenv
 from openai import OpenAI
 from services.models import EnrichedContext
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize OpenAI client
 try:

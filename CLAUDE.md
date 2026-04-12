@@ -3,14 +3,18 @@
 Use knowledge files only during substantial implementation work, debugging, planning, or project review.
 Do not review rules or hypotheses for simple questions, explanations, rewriting, or meta-discussion.
 
-When completing substantial implementation work, extract reusable insights into domain folders, for example:
+Extract reusable insights into domain folders only when:
+- a pattern repeats across multiple tasks in the same domain
+- a rule or hypothesis is confirmed or contradicted by evidence
+- wrapping up a substantial implementation session
 
+Example structure:
 /knowledge/pricing/
   knowledge.md
   hypotheses.md
   rules.md
 
-Maintain /knowledge/INDEX.md when knowledge files are actively being used.
+Maintain /knowledge/INDEX.md only when knowledge files are actively being used.
 Promote a hypothesis to a rule only after repeated confirmation.
 Demote a rule back to a hypothesis if later evidence contradicts it.
 
@@ -87,6 +91,8 @@ Rule of thumb:
 - if the user is asking to build, change, test, debug, or technically plan something, use Implementation Mode
 
 ## Implementation Flow
+
+For larger implementation plans with independent tasks, subagent-driven execution may be used to keep task context isolated and improve review quality.
 
 Use this flow only in Implementation Mode.
 
@@ -188,16 +194,16 @@ Do not:
 Use this quick check before responding:
 
 - Is the user asking for information or explanation?
-  - respond directly
+  → respond directly
 
 - Is the user asking for writing or rewriting without implementation?
-  - respond directly
+  → respond directly
 
 - Is the user asking to build, modify, debug, test, or plan technical work?
-  - use Implementation Mode
+  → use Implementation Mode
 
 - Is it ambiguous?
-  - ask one short clarifying question, or give a direct answer first if possible
+  → ask one short clarifying question, or give a direct answer first if possible
 
 ## Default Rule
 

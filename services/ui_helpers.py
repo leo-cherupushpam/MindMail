@@ -82,16 +82,6 @@ def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: s
     ">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <div style="font-weight: 600; font-size: 15px; color: #111827; flex: 1;">{sender}</div>
-            <div style="
-                background-color: {urgency_bg};
-                color: {urgency_color};
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-size: 11px;
-                font-weight: 600;
-                white-space: nowrap;
-                margin-left: 8px;
-            ">{urgency_icon} {urgency_text}</div>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
             <div style="font-size: 14px; color: #374151; flex: 1; margin-right: 12px; line-height: 1.3;">{subject}</div>
