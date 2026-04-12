@@ -1,117 +1,246 @@
-# 📧 Gmail Email Assistant
+# Gmail Email Assistant MVP
 
-An AI-powered email assistant that helps you manage your Gmail inbox more efficiently using large language models.
+An intelligent email management tool that uses AI to help you understand, summarize, and respond to emails with context-aware insights.
 
-## ✨ Features
+## Features
 
-This MVP implements six core email productivity features:
+### 📧 Smart Email Management
+- **Email Inbox**: Browse and organize email threads with intelligent prioritization
+- **Thread Viewer**: Read full email conversations with context analysis
+- **Scrollable Interface**: Smooth navigation with inbox and assistant panels independently scrollable
 
-1. **💬 Conversational Q&A** - Ask questions about your emails and get contextual answers
-2. **📝 Email Summarization** - Get concise summaries of email threads
-3. **✉️ Draft Reply Generator** - Generate professional email replies based on your intent
-4. **🧵 Thread Organization** - Organize and filter email threads by topic/date
-5. **🏷️ Smart Inbox Rules** - Get automated suggestions for email categorization and labeling
-6. **📅 Meeting Scheduler** - Extract meeting details (date, time, participants, agenda) from email threads
+### 🤖 AI-Powered Assistant
 
-## 🏗️ Architecture
+#### Ask (💬)
+Ask natural language questions about email content. The assistant understands context, implicit needs, and underlying concerns to provide insightful answers.
 
-This implementation uses a **hybrid LLM approach** for optimal performance and cost efficiency:
+**Example questions:**
+- "What's the main concern in this thread?"
+- "What action do I need to take?"
+- "What are the implicit concerns from the customer?"
 
-- **SEARCH_MODEL** (`gpt-4.1-nano-2025-04-14`): Used for high-volume tasks like summarization, organization, and rule suggestion
-- **DRAFTING_MODEL** (`gpt-5-nano-2025-08-07`): Used for quality-critical tasks like drafting replies and answering complex questions
+#### Draft (📋)
+Generate professional email replies that understand context and address underlying needs. Matches the appropriate tone based on the email thread's sentiment and urgency.
 
-## 📋 Requirements
+**Supports:**
+- Professional tone recommendations
+- Concern-aware drafting
+- Intent-based reply generation
+- Tone customization (professional, collaborative, assertive, etc.)
 
-- Python 3.8+
-- Streamlit
-- OpenAI API key
+#### Summarize (📊)
+Create multi-perspective summaries of email threads covering:
+- Surface facts and explicit statements
+- Underlying needs and implicit asks
+- Sentiment arc and tone changes
+- Decision points requiring action
+- Professional context and power dynamics
+- Implicit concerns and hesitations
 
-Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+### 🧠 Context Analysis
+Every email is enriched with intelligent analysis:
+- **Urgency Assessment**: Automatic detection of time-sensitive emails (urgent, high, normal, low)
+- **Action Items**: Extraction of explicit and implicit action items
+- **Sentiment Analysis**: Understanding tone and how it changes across messages
+- **Implicit Needs**: Identification of what's really being asked for
+- **Concern Detection**: Flagging worries, hesitations, and potential blockers
+- **Tone Recommendations**: Suggested response tone based on context
 
-## 🔧 Setup
+## Architecture
 
-1. Get an OpenAI API key from [platform.openai.com](https://platform.openai.com/api-keys)
-2. Set the environment variable:
-   ```bash
-   export OPENAI_API_KEY="your-api-key-here"
-   ```
-3. Run the application:
-   ```bash
-   streamlit run app/main.py
-   ```
+### Tech Stack
+- **Frontend**: Streamlit (Python web framework)
+- **AI Models**: 
+  - `gpt-4.1-nano-2025-04-14` for summarization (high-volume, cost-optimized)
+  - `gpt-5-nano-2025-08-07` for drafting and Q&A (quality-critical)
+- **API**: OpenAI API
+- **Data**: Mock email threads for MVP showcase
 
-## 📁 Project Structure
-
+### Project Structure
 ```
 gmail-email-assistant/
 ├── app/
-│   └── main.py          # Streamlit web interface
+│   └── main.py                 # Streamlit UI application
 ├── services/
-│   └── qa_service.py    # Core LLM functionality (6 features)
-├── tests/
-│   └── test_qa_service.py # Test suite
-├── requirements.txt     # Python dependencies
-└── README.md            # This file
+│   ├── models.py               # Data models (EmailMessage, EmailThread, EnrichedContext)
+│   ├── context_analyzer.py     # Email context analysis and enrichment
+│   ├── qa_service.py           # AI-powered Q&A, drafting, summarization
+│   ├── mock_data.py            # 14 realistic mock email threads
+│   ├── gmail_auth.py           # Gmail authentication (future)
+│   ├── gmail_fetcher.py        # Gmail API integration (future)
+│   └── cache.py                # Email caching
+└── README.md                   # This file
 ```
 
-## 🚀 Deployment
+### Core Components
 
-This application is ready for deployment to [Streamlit Cloud](https://streamlit.io/cloud):
+#### EmailThread Model
+Represents a complete email conversation with:
+- List of messages (EmailMessage objects)
+- Participants
+- Main topic
+- Underlying need
+- Urgency level
+- Action items
 
-1. Push this repository to GitHub
-2. Connect your GitHub repository to Streamlit Cloud
-3. Set the `OPENAI_API_KEY` as a secret in Streamlit Cloud settings
-4. Deploy!
+#### ContextAnalyzer
+Enriches email threads with intelligent analysis:
+- Participant role inference
+- Urgency assessment
+- Implicit need extraction
+- Sentiment trajectory analysis
+- Professional context identification
+- Tone recommendations
+- Concern extraction
 
-## 🧠 Design Decisions
+#### QA Service
+Provides AI-powered capabilities:
+- `ask_question()`: Answer questions about email content with context awareness
+- `generate_draft_reply()`: Create context-aware email drafts
+- `summarize_emails()`: Generate multi-perspective summaries
+- `analyze_sentiment()`: Quick sentiment classification
 
-### Hybrid LLM Approach
-- Uses faster, cheaper models for high-volume tasks (summarization, organization)
-- Uses higher-quality models for tasks requiring nuanced understanding (drafting, complex Q&A)
-- Optimizes for both performance and cost efficiency
+## Mock Data
 
-### Privacy-Focused Design
-- Does not store full email bodies by default (light persistence approach)
-- Processes emails in-memory for MVP demonstration
-- Ready to extend with secure storage solutions
+The MVP includes **14 realistic email threads** covering diverse scenarios:
 
-### Extensible Architecture
-- Each feature is implemented as a separate, testable function
-- Easy to add new email productivity features
-- Clear separation between UI and business logic
+1. **Production Incident**: Critical database issue with financial impact
+2. **Feature Request**: Customer-driven CSV import with stakeholder discussion
+3. **Performance Investigation**: Technical deep-dive with database optimization
+4. **Hiring**: Recruitment coordination and technical interview
+5. **Design Collaboration**: Iterative UX feedback with specific suggestions
+6. **Customer Support Escalation**: Critical data export bug
+7. **Sprint Retrospective**: Team process improvement discussion
+8. **Security Vulnerability**: Dependency patch coordination
+9. **Recognition**: Positive feedback on major initiative
+10. **Career Development**: 1:1 scheduling for growth discussion
+11. **Contract Renewal**: Long chain (5 messages) showing sentiment arc
+12. **Leadership Opportunity**: Single message perfect for drafting replies
+13. **Q1 Planning**: Hidden concerns and strategic priorities
+14. **Architecture Approval**: Approval-seeking with technical evidence
 
-## 📈 Future Enhancements
+Each thread is designed to validate MVP features and demonstrate real-world usage patterns.
 
-1. **Real Gmail API Integration** - Connect to actual Gmail accounts via OAuth 2.0
-2. **Persistent Storage** - Store email metadata and embeddings for long-term insights
-3. **User Authentication** - Multi-user support with secure session management
-4. **Advanced Features** - Email scheduling, follow-up reminders, priority inbox
-5. **Mobile Responsiveness** - Optimized interface for mobile devices
+## Setup
 
-## 💡 Usage Examples
+### Prerequisites
+- Python 3.8+
+- OpenAI API key
+- Streamlit
 
-### Conversational Q&A
-> "What did Sarah say about the budget last week?"
-> 
-> Returns: A contextual answer grounded in relevant email content
+### Installation
 
-### Email Summarization
-> "Summarize unread emails from today"
-> 
-> Returns: Concise summary of key topics and action items
+```bash
+# Clone the repository
+git clone <repo-url>
+cd gmail-email-assistant
 
-### Draft Reply Generator
-> "I need to tell the team I'll be delayed for the meeting"
-> 
-> Returns: Professional draft ready to send
+# Install dependencies
+pip install -r requirements.txt
 
-## 📄 License
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+```
 
-MIT License - feel free to use, modify, and distribute this project.
+### Running the App
 
----
+```bash
+streamlit run app/main.py
+```
 
-*Built with ❤️ using Streamlit and OpenAI*
+The app will open at `http://localhost:8501`
+
+## Usage
+
+1. **Browse Emails**: Click on email threads in the inbox (left panel)
+2. **View Thread**: Read full conversation in the thread viewer (middle panel)
+3. **Ask Questions**: Use the "Ask" feature to ask about the email
+4. **Draft Replies**: Click "Draft" to generate a context-aware response
+5. **Summarize**: Click "Summarize" to get a multi-perspective summary
+
+## Model Strategy
+
+### SEARCH_MODEL: `gpt-4.1-nano-2025-04-14`
+Used for high-volume, lower-latency tasks:
+- Email summarization
+- Content organization
+- Rule suggestion
+
+**Why nano**: Cost-optimized while maintaining quality for summary tasks
+
+### DRAFTING_MODEL: `gpt-5-nano-2025-08-07`
+Used for quality-critical, complex reasoning tasks:
+- Draft reply generation
+- Complex question answering
+- Context-aware decision support
+
+**Why GPT-5**: Better quality for tasks that directly impact user experience
+
+## Future Enhancements
+
+- [ ] Gmail API integration for real inbox
+- [ ] Email search and filtering
+- [ ] Custom email templates
+- [ ] Sentiment tracking over time
+- [ ] Integration with calendar for deadline awareness
+- [ ] Team collaboration features
+- [ ] Email scheduling
+- [ ] Advanced analytics on email patterns
+- [ ] Custom model fine-tuning
+
+## MVP Validation
+
+The mock data comprehensively validates all MVP features:
+
+- ✅ **Email Browsing**: Multiple threads with varied topics
+- ✅ **Thread Viewing**: Full conversation context with multiple messages
+- ✅ **Summarization**: Long chains (5+ messages) perfect for testing
+- ✅ **Q&A**: Diverse contexts requiring nuanced understanding
+- ✅ **Draft Generation**: Clear reply opportunities with decision points
+- ✅ **Urgency Detection**: Critical, urgent, high, normal, low levels
+- ✅ **Action Items**: Explicit and implicit actions across threads
+- ✅ **Sentiment Analysis**: Positive, neutral, negative with sentiment arcs
+- ✅ **Implicit Needs**: Hidden concerns and underlying requirements
+- ✅ **Professional Contexts**: Sales, engineering, product, HR, leadership
+
+## Development
+
+### Code Style
+- Python 3.8+ compatible
+- Type hints for clarity
+- Docstrings for all functions
+- Clean separation of concerns
+
+### Testing
+Run mock data validation:
+```bash
+python -c "from services.mock_data import get_sample_threads; threads = get_sample_threads(); print(f'Loaded {len(threads)} test threads')"
+```
+
+## Troubleshooting
+
+### OpenAI API Key Not Found
+```bash
+# Make sure .env file exists and contains:
+OPENAI_API_KEY=your_key_here
+```
+
+### Model Not Available
+Check that your OpenAI account has access to:
+- `gpt-4.1-nano-2025-04-14`
+- `gpt-5-nano-2025-08-07`
+
+## Performance Notes
+
+- **Summarization**: Uses nano model for faster responses (typically <5s)
+- **Drafting**: Uses GPT-5 for quality (typically <8s)
+- **Q&A**: Depends on question complexity (typically 5-15s)
+
+## License
+
+MIT License - See LICENSE file for details
+
+## Contact
+
+For questions or feedback about this MVP, please reach out to the development team.

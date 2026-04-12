@@ -561,36 +561,40 @@ st.markdown("""
     /* ============================================
        3-COLUMN GRID LAYOUT
        ============================================ */
-    .main-grid {
-        display: grid;
-        grid-template-columns: 1fr 1.5fr 1fr;
-        gap: 0;
-        height: calc(100vh - 80px);
-        width: 100%;
+    /* Ensure main app takes full height */
+    .main {
+        height: 100vh;
     }
 
-    .grid-column {
-        overflow-y: auto;
+    /* Target Streamlit column containers */
+    [data-testid="column"] {
+        height: 100vh;
+        overflow-y: auto !important;
         overflow-x: hidden;
     }
 
-    .email-list-col {
+    /* Style for first column (inbox) */
+    [data-testid="column"]:first-child {
         background-color: #F3F4F6;
         border-right: 1px solid #E5E7EB;
         padding: 16px;
     }
 
-    .thread-viewer-col {
+    /* Style for second column (thread viewer) */
+    [data-testid="column"]:nth-child(2) {
         background-color: white;
         padding: 24px;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
+    }
+
+    /* Style for third column (assistant) */
+    [data-testid="column"]:nth-child(3) {
+        background-color: #F9FAFB;
+        border-left: 1px solid #E5E7EB;
+        padding: 16px;
     }
 
     .thread-messages-container {
-        max-height: 350px;
+        max-height: calc(100vh - 300px);
         overflow-y: auto;
         padding-right: 8px;
         margin-right: -8px;
@@ -614,12 +618,6 @@ st.markdown("""
 
     .thread-messages-container::-webkit-scrollbar-thumb:hover {
         background: #9CA3AF;
-    }
-
-    .assistant-sidebar-col {
-        background-color: #F9FAFB;
-        border-left: 1px solid #E5E7EB;
-        padding: 16px;
     }
 
     /* ============================================
@@ -725,73 +723,6 @@ st.markdown("""
 
     footer {
         display: none;
-    }
-
-    /* ============================================
-       HEADER TOOLBAR - STICKY
-       ============================================ */
-    .header-toolbar {
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: #F9FAFB;
-        border-bottom: 1px solid #E5E7EB;
-        padding: 12px 24px;
-        height: 60px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .toolbar-left {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex: 1;
-    }
-
-    .toolbar-logo {
-        font-size: 20px;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .toolbar-search {
-        flex: 1;
-        max-width: 300px;
-    }
-
-    .toolbar-right {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .toolbar-account {
-        font-size: 14px;
-        color: #4B5563;
-    }
-
-    .toolbar-timestamp {
-        font-size: 12px;
-        color: #9CA3AF;
-    }
-
-    .toolbar-button {
-        padding: 8px 16px;
-        background-color: #2563EB;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 150ms ease;
-    }
-
-    .toolbar-button:hover {
-        background-color: #1D4ED8;
     }
 
     /* ============================================
@@ -922,54 +853,10 @@ if 'chat_history' not in st.session_state:
 
 if 'selected_thread_idx' not in st.session_state:
     st.session_state.selected_thread_idx = 0
-if 'search_query' not in st.session_state:
-    st.session_state.search_query = ""
 if 'selected_enriched_context' not in st.session_state:
     st.session_state.selected_enriched_context = None
 if 'assistant_feature' not in st.session_state:
     st.session_state.assistant_feature = None  # "draft", "summarize", or None
-
-# ============================================================================
-# HEADER TOOLBAR
-# ============================================================================
-st.markdown('<div class="header-toolbar">', unsafe_allow_html=True)
-
-toolbar_col1, toolbar_col2, toolbar_col3 = st.columns([2, 2, 1], gap="small")
-
-with toolbar_col1:
-    st.markdown('<div class="toolbar-logo">📧 Gmail Assistant</div>', unsafe_allow_html=True)
-
-with toolbar_col2:
-    search_query = st.text_input(
-        "Search threads...",
-        value=st.session_state.get('search_query', ''),
-        label_visibility="collapsed"
-    )
-    st.session_state.search_query = search_query
-
-with toolbar_col3:
-    col_account, col_refresh, col_logout = st.columns(3, gap="small")
-    with col_account:
-        if st.session_state.authenticated:
-            st.caption("leocherupushpam@gmail.com")
-    with col_refresh:
-        if st.button("🔄 Refresh", use_container_width=True, key="toolbar_refresh"):
-            with st.spinner("Fetching emails..."):
-                threads = fetch_all_emails()
-                save_cache(threads)
-                st.session_state.email_threads = threads
-                st.session_state.selected_thread_idx = 0
-                st.session_state.last_refresh = datetime.now().isoformat()
-            st.rerun()
-    with col_logout:
-        if st.button("🚪 Logout", use_container_width=True, key="toolbar_logout"):
-            logout()
-            st.session_state.authenticated = False
-            st.rerun()
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown("---")
 
 # Create 3-column layout: Gmail inbox (left) | Thread (middle) | Assistant sidebar (right)
 col_list, col_thread, col_assistant = st.columns([1, 1.5, 1], gap="small")
@@ -979,17 +866,8 @@ with col_list:
     st.markdown("### 📧 Inbox")
 
     if st.session_state.sample_threads:
-        # Filter threads by search query
-        filtered_threads = st.session_state.sample_threads
-        if st.session_state.search_query:
-            filtered_threads = [
-                t for t in st.session_state.sample_threads
-                if st.session_state.search_query.lower() in t.main_topic.lower()
-                or any(st.session_state.search_query.lower() in msg.sender.lower() for msg in t.messages)
-            ]
-
         # Render email list with clickable cards
-        for display_idx, thread in enumerate(filtered_threads):
+        for display_idx, thread in enumerate(st.session_state.sample_threads):
             # Find the actual index in the unfiltered list
             actual_idx = st.session_state.sample_threads.index(thread)
             is_selected = (actual_idx == st.session_state.selected_thread_idx)

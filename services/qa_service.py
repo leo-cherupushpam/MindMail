@@ -14,6 +14,10 @@ except Exception as e:
     print(f"Warning: Could not initialize OpenAI client. Ensure OPENAI_API_KEY is set. Error: {e}")
     client = None
 
+# Model configuration
+SEARCH_MODEL = "gpt-4.1-nano-2025-04-14"  # For high-volume tasks: summarization, organization
+DRAFTING_MODEL = "gpt-5-nano-2025-08-07"  # For quality-critical tasks: drafting, complex Q&A
+
 
 def analyze_sentiment(text: str) -> str:
     """
@@ -97,7 +101,7 @@ Provide a comprehensive summary that shows you understand the full context."""
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model=SEARCH_MODEL,
             max_tokens=1500,
             messages=[
                 {"role": "user", "content": prompt}
@@ -154,7 +158,7 @@ Provide a ready-to-send email draft."""
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model=DRAFTING_MODEL,
             max_tokens=1024,
             messages=[
                 {"role": "user", "content": prompt}
@@ -199,7 +203,7 @@ Consider the full conversation history and implicit meanings. Look beyond surfac
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model=DRAFTING_MODEL,
             max_tokens=1024,
             messages=[
                 {"role": "user", "content": prompt}
