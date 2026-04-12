@@ -1,12 +1,12 @@
-from anthropic import Anthropic
+from openai import OpenAI
 from services.models import EnrichedContext
 
-# Initialize Anthropic client
+# Initialize OpenAI client
 try:
-    client = Anthropic()
+    client = OpenAI()
 except Exception as e:
     # Log the error but allow the function to proceed with graceful fallback
-    print(f"Warning: Could not initialize Anthropic client. Ensure ANTHROPIC_API_KEY is set. Error: {e}")
+    print(f"Warning: Could not initialize OpenAI client. Ensure OPENAI_API_KEY is set. Error: {e}")
     client = None
 
 
@@ -63,7 +63,7 @@ def summarize_emails(enriched_context: EnrichedContext) -> str:
         Multi-layer summary covering surface, underlying, sentiment, and concerns
     """
     if client is None:
-        return "Error: LLM client not configured. Please ensure ANTHROPIC_API_KEY is set."
+        return "Error: OpenAI client not configured. Please ensure OPENAI_API_KEY is set."
 
     thread = enriched_context.thread
     context_str = "\n".join([f"- {msg.subject}: {msg.body[:150]}..." for msg in thread.messages])
@@ -91,14 +91,14 @@ EMAIL THREAD:
 Provide a comprehensive summary that shows you understand the full context."""
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+        response = client.chat.completions.create(
+            model="gpt-4",
             max_tokens=1500,
             messages=[
                 {"role": "user", "content": prompt}
             ]
         )
-        return message.content[0].text
+        return response.choices[0].message.content
     except Exception as e:
         print(f"Error during summarization: {e}")
         return f"Could not summarize emails due to API error: {e}"
@@ -117,7 +117,7 @@ def generate_draft_reply(enriched_context: EnrichedContext, user_intent: str = N
         Draft reply that addresses underlying needs and concerns
     """
     if client is None:
-        return "Error: LLM client not configured. Please ensure ANTHROPIC_API_KEY is set."
+        return "Error: OpenAI client not configured. Please ensure OPENAI_API_KEY is set."
 
     thread = enriched_context.thread
     context_str = "\n".join([f"- {msg.subject}: {msg.body[:100]}..." for msg in thread.messages])
@@ -148,14 +148,14 @@ Your draft should:
 Provide a ready-to-send email draft."""
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+        response = client.chat.completions.create(
+            model="gpt-4",
             max_tokens=1024,
             messages=[
                 {"role": "user", "content": prompt}
             ]
         )
-        return message.content[0].text
+        return response.choices[0].message.content
     except Exception as e:
         return f"An error occurred during draft generation: {e}"
 
@@ -172,7 +172,7 @@ def ask_question(question: str, enriched_context: EnrichedContext) -> str:
         Answer that demonstrates understanding of context and implicit meaning
     """
     if client is None:
-        return "Error: LLM client not configured. Please ensure ANTHROPIC_API_KEY is set."
+        return "Error: OpenAI client not configured. Please ensure OPENAI_API_KEY is set."
 
     thread = enriched_context.thread
     context_str = "\n".join([f"- {msg.subject}: {msg.body[:100]}..." for msg in thread.messages])
@@ -193,13 +193,13 @@ EMAIL THREAD:
 Consider the full conversation history and implicit meanings. Look beyond surface facts to understand what's really needed. Address not just what was asked, but what's underlying the question."""
 
     try:
-        message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+        response = client.chat.completions.create(
+            model="gpt-4",
             max_tokens=1024,
             messages=[
                 {"role": "user", "content": prompt}
             ]
         )
-        return message.content[0].text
+        return response.choices[0].message.content
     except Exception as e:
         return f"An error occurred during question answering: {e}"
