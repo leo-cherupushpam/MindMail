@@ -1079,7 +1079,17 @@ with col_assistant:
 
             # ========== ASSISTANT FEATURES ==========
             st.markdown("### How can I help?")
-            col_draft_btn, col_summarize_btn = st.columns(2, gap="small")
+            col_ask_btn, col_draft_btn, col_summarize_btn = st.columns(3, gap="small")
+
+            with col_ask_btn:
+                if st.button(
+                    "💬 Ask",
+                    use_container_width=True,
+                    key="feature_ask_btn",
+                    type="primary" if st.session_state.assistant_feature == "ask" else "secondary"
+                ):
+                    st.session_state.assistant_feature = None if st.session_state.assistant_feature == "ask" else "ask"
+                    st.rerun()
 
             with col_draft_btn:
                 if st.button(
@@ -1103,25 +1113,61 @@ with col_assistant:
 
             st.markdown("---")
 
+            # ========== ASK FEATURE ==========
+            if st.session_state.assistant_feature == "ask":
+                st.markdown("#### 💬 Ask a Question")
+
+                # Display conversation history
+                if st.session_state.chat_history:
+                    for message in st.session_state.chat_history:
+                        if message["role"] == "user":
+                            st.markdown(f"**You:** {message['content']}")
+                        else:
+                            st.markdown(f"**Assistant:** {message['content']}")
+                        st.markdown("---")
+
+                # Question input
+                user_question = st.text_input(
+                    "Ask about this email:",
+                    placeholder="E.g., 'What's the main topic?' or 'When is the deadline?'",
+                    key="ask_question_input"
+                )
+
+                # Ask button
+                if st.button("Send →", use_container_width=True, key="ask_send_btn"):
+                    if user_question:
+                        # Add user message to history
+                        st.session_state.chat_history.append({
+                            "role": "user",
+                            "content": user_question
+                        })
+
+                        # Get answer using enriched context
+                        context = st.session_state.selected_enriched_context
+                        if context:
+                            try:
+                                with st.spinner("Thinking..."):
+                                    answer = ask_question(user_question, context)
+
+                                if answer and not answer.startswith("Error:"):
+                                    # Add assistant response to history
+                                    st.session_state.chat_history.append({
+                                        "role": "assistant",
+                                        "content": answer
+                                    })
+                                    st.rerun()
+                                else:
+                                    st.error(f"Failed to get answer: {answer}")
+                            except Exception as e:
+                                st.error(f"Error: {str(e)}")
+                        else:
+                            st.error("No context available for this email")
+                    else:
+                        st.warning("Please ask a question about this email")
+
             # ========== DRAFT FEATURE ==========
             if st.session_state.assistant_feature == "draft":
                 st.markdown("#### ✉️ Draft a Reply")
-
-                # Tone selector with radio buttons
-                st.markdown("**Tone:**")
-                selected_tone = st.radio(
-                    "Choose a tone:",
-                    ["Professional", "Collaborative", "Assertive", "Empathetic"],
-                    horizontal=True,
-                    label_visibility="collapsed",
-                    index=0,
-                    key="draft_tone_selector"
-                ).lower()
-
-                # Show tone example
-                tone_example = format_tone_example(selected_tone)
-                with st.expander(f"📝 Example ({selected_tone.capitalize()})"):
-                    st.caption(f"_{tone_example}_")
 
                 st.markdown("**What do you want to convey?**")
                 intent = st.text_area(
@@ -1132,9 +1178,20 @@ with col_assistant:
                     key="draft_intent"
                 )
 
-                # Character count
-                char_count = len(intent) if intent else 0
-                st.caption(f"Characters: {char_count} / 500")
+                # Tone selector dropdown and character count on same line
+                col_tone, col_char = st.columns([1, 1.2], gap="small")
+                with col_tone:
+                    selected_tone = st.selectbox(
+                        "Tone:",
+                        ["Professional", "Collaborative", "Assertive", "Empathetic"],
+                        index=0,
+                        label_visibility="collapsed",
+                        key="draft_tone_selector"
+                    ).lower()
+
+                with col_char:
+                    char_count = len(intent) if intent else 0
+                    st.caption(f"**Tone:** {selected_tone.capitalize()} | **Characters:** {char_count} / 500")
 
                 if st.button("Draft Reply →", use_container_width=True, key="draft_generate_btn"):
                     if intent:
