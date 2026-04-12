@@ -664,17 +664,23 @@ st.markdown("""
     }
 
     /* ============================================
-       ENHANCED STYLING - Professional Appearance
+       ENHANCED STYLING - Professional Premium Cards
        ============================================ */
 
-    /* Email list cards - hover effects */
+    /* Email List Column - Premium Background */
+    [data-testid="column"] {
+        background-color: #FFFFFF;
+    }
+
+    /* Email list cards - Premium Styling */
     .email-card {
-        transition: all 150ms ease;
+        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        display: block;
     }
 
     .email-card:hover {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12) !important;
+        transform: translateY(-4px) !important;
     }
 
     /* Thread viewer message styling */
@@ -857,27 +863,36 @@ with col_list:
                 or any(st.session_state.search_query.lower() in msg.sender.lower() for msg in t.messages)
             ]
 
-        # Render email list with clickable cards using streamlit-card
+        # Render email list with premium clickable cards
         for display_idx, thread in enumerate(filtered_threads):
             # Find the actual index in the unfiltered list
             actual_idx = st.session_state.email_threads.index(thread)
             is_selected = (actual_idx == st.session_state.selected_thread_idx)
 
-            # Extract email data
-            sender = thread.messages[0].sender if thread.messages else "Unknown"
-            preview = thread.messages[0].body[:80] + "..." if thread.messages and thread.messages[0].body else "No content"
+            # Determine urgency from enriched context if available
+            urgency = thread.urgency if hasattr(thread, 'urgency') else "normal"
+            action_items = thread.action_items if hasattr(thread, 'action_items') else []
 
-            # Create clickable card with text as list [sender, preview]
-            stc.card(
-                title=thread.main_topic,
-                text=[f"From: {sender}", preview],
-                on_click=lambda actual_idx=actual_idx: (
-                    st.session_state.update({'selected_thread_idx': actual_idx}),
-                    st.session_state.update({'chat_history': []}),
+            # Render the premium card HTML
+            html_card = format_email_card(thread, is_selected, urgency, action_items)
+
+            # Create columns: card + minimal button
+            col_card, col_btn = st.columns([20, 1])
+
+            with col_card:
+                st.markdown(html_card, unsafe_allow_html=True)
+
+            with col_btn:
+                # Hidden button for click handler (icon only for minimal footprint)
+                if st.button(
+                    "→",
+                    key=f"select_{actual_idx}",
+                    help="View thread",
+                    use_container_width=True
+                ):
+                    st.session_state.update({'selected_thread_idx': actual_idx})
+                    st.session_state.update({'chat_history': []})
                     st.rerun()
-                ),
-                key=f"email_card_{actual_idx}"
-            )
     else:
         st.info("📭 No emails. Click 'Refresh' to fetch emails.")
 

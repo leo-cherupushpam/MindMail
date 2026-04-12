@@ -3,26 +3,32 @@ from datetime import datetime
 from services.models import EmailThread
 
 
-def format_email_card(thread: EmailThread, is_selected: bool = False) -> str:
+def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: str = "normal", action_items: list = None) -> str:
     """
-    Render a single email thread as an HTML card.
+    Render a single email thread as an HTML card with urgency indicators.
 
     Args:
         thread: EmailThread object
         is_selected: Whether this thread is selected
+        urgency: Thread urgency level ("urgent", "normal", "low")
+        action_items: List of action items in thread (optional)
 
     Returns:
         HTML string for the card
     """
+    if action_items is None:
+        action_items = []
+
     sender = thread.messages[0].sender if thread.messages else "Unknown"
     subject = thread.main_topic
     preview = thread.messages[0].body[:80] + "..." if thread.messages and thread.messages[0].body else "No content"
+    message_count = len(thread.messages)
 
     # Parse and format timestamp from ISO format
     if thread.messages and thread.messages[0].timestamp:
         try:
             dt = datetime.fromisoformat(thread.messages[0].timestamp.replace('Z', '+00:00'))
-            timestamp = dt.strftime("%b %d, %Y")
+            timestamp = dt.strftime("%b %d")
         except (ValueError, AttributeError):
             timestamp = "Unknown"
     else:
@@ -37,21 +43,56 @@ def format_email_card(thread: EmailThread, is_selected: bool = False) -> str:
     subject = html.escape(subject)
     preview = html.escape(preview)
 
-    border_style = "border-left: 4px solid #2563EB; background-color: #DBEAFE;" if is_selected else "border: 1px solid #E5E7EB; background-color: white;"
+    # Determine accent color and icon based on urgency
+    if "urgent" in urgency.lower():
+        accent_color = "#EF4444"  # Red
+        urgency_icon = "🔴"
+    elif action_items:
+        accent_color = "#F59E0B"  # Orange
+        urgency_icon = "📌"
+    else:
+        accent_color = "#10B981"  # Green
+        urgency_icon = "📄"
+
+    # Determine card styling based on selection state
+    if is_selected:
+        background = "#F0F7FF"
+        border = f"4px solid #2563EB"
+        shadow = "0 10px 25px rgba(37, 99, 235, 0.2)"
+    else:
+        background = "white"
+        border = f"4px solid {accent_color}; border-right: 1px solid #E5E7EB; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB;"
+        shadow = "0 1px 3px rgba(0,0,0,0.08)"
 
     html_content = f"""
     <div class="email-card" style="
-        {border_style}
+        border-left: {border};
+        background-color: {background};
         border-radius: 8px;
         padding: 16px;
-        margin-bottom: 8px;
+        margin: 8px;
         cursor: pointer;
-        transition: all 150ms ease;
+        box-shadow: {shadow};
+        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
     ">
-        <div style="font-weight: 700; font-size: 16px; color: #111827; margin-bottom: 4px;">{sender}</div>
-        <div style="font-weight: 600; font-size: 14px; color: #111827; margin-bottom: 4px;">{subject}</div>
-        <div style="font-size: 13px; color: #4B5563; margin-bottom: 8px; line-height: 1.4;">{preview}</div>
-        <div style="font-size: 12px; color: #9CA3AF;">{timestamp}</div>
+        <!-- Sender with urgency icon -->
+        <div style="font-weight: 700; font-size: 16px; color: #111827; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>{urgency_icon}</span>
+            <span>{sender}</span>
+        </div>
+
+        <!-- Subject (prominent) -->
+        <div style="font-weight: 600; font-size: 14px; color: #111827; margin-bottom: 8px; line-height: 1.4;">{subject}</div>
+
+        <!-- Preview -->
+        <div style="font-size: 13px; color: #4B5563; margin-bottom: 12px; line-height: 1.4;">{preview}</div>
+
+        <!-- Footer metadata -->
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9CA3AF;">
+            <span>{timestamp}</span>
+            <span>{message_count} message{'s' if message_count != 1 else ''}</span>
+        </div>
     </div>
     """
     return html_content
