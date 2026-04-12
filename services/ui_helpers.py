@@ -63,16 +63,11 @@ def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: s
         box-shadow: {shadow};
         transition: all 150ms ease;
     ">
-        <!-- Sender (bold) -->
         <div style="font-weight: 600; font-size: 15px; color: #111827; margin-bottom: 4px;">{sender}</div>
-
-        <!-- Subject and timestamp on same line -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
             <div style="font-size: 14px; color: #374151; flex: 1; margin-right: 12px; line-height: 1.3;">{subject}</div>
             <div style="font-size: 12px; color: #9CA3AF; white-space: nowrap;">{timestamp}</div>
         </div>
-
-        <!-- Preview (small gray) -->
         <div style="font-size: 13px; color: #6B7280; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{preview}</div>
     </div>
     """
@@ -113,7 +108,6 @@ def format_thread_message(sender: str, email: str, timestamp: str, body: str) ->
         padding: 16px;
         margin-bottom: 16px;
     ">
-        <!-- Message header -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
             <div>
                 <div style="font-weight: 600; font-size: 15px; color: #111827;">{sender}</div>
@@ -121,8 +115,6 @@ def format_thread_message(sender: str, email: str, timestamp: str, body: str) ->
             </div>
             <div style="font-size: 12px; color: #9CA3AF; text-align: right; white-space: nowrap;">{formatted_timestamp}</div>
         </div>
-
-        <!-- Message body -->
         <div style="
             font-size: 14px;
             color: #374151;

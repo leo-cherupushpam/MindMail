@@ -579,6 +579,34 @@ st.markdown("""
     .thread-viewer-col {
         background-color: white;
         padding: 24px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .thread-messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 8px;
+        margin-right: -8px;
+    }
+
+    .thread-messages-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .thread-messages-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .thread-messages-container::-webkit-scrollbar-thumb {
+        background: #D1D5DB;
+        border-radius: 4px;
+    }
+
+    .thread-messages-container::-webkit-scrollbar-thumb:hover {
+        background: #9CA3AF;
     }
 
     .assistant-sidebar-col {
@@ -863,7 +891,7 @@ with col_list:
                 or any(st.session_state.search_query.lower() in msg.sender.lower() for msg in t.messages)
             ]
 
-        # Render email list with premium clickable cards
+        # Render email list with clickable cards
         for display_idx, thread in enumerate(filtered_threads):
             # Find the actual index in the unfiltered list
             actual_idx = st.session_state.email_threads.index(thread)
@@ -873,25 +901,22 @@ with col_list:
             urgency = thread.urgency if hasattr(thread, 'urgency') else "normal"
             action_items = thread.action_items if hasattr(thread, 'action_items') else []
 
-            # Render the card HTML and make it clickable
+            # Render the card HTML
             html_card = format_email_card(thread, is_selected, urgency, action_items)
 
-            # Create columns: card content + select button
-            col_card, col_select = st.columns([18, 2])
+            # Use st.html() for better HTML rendering support
+            st.html(html_card)
 
-            with col_card:
-                st.markdown(html_card, unsafe_allow_html=True)
-
-            with col_select:
-                # Select button for this email
-                if st.button(
-                    "View" if not is_selected else "✓ Selected",
-                    key=f"select_{actual_idx}",
-                    use_container_width=True
-                ):
-                    st.session_state.update({'selected_thread_idx': actual_idx})
-                    st.session_state.update({'chat_history': []})
-                    st.rerun()
+            # Invisible button for click detection (same row as card above)
+            if st.button(
+                " ",  # Invisible label
+                key=f"select_{actual_idx}",
+                use_container_width=True,
+                help="Click to view this email thread"
+            ):
+                st.session_state.update({'selected_thread_idx': actual_idx})
+                st.session_state.update({'chat_history': []})
+                st.rerun()
     else:
         st.info("📭 No emails. Click 'Refresh' to fetch emails.")
 
@@ -925,7 +950,8 @@ with col_thread:
             st.caption(f"From: {', '.join(selected_thread.participants)}")
             st.markdown("---")
 
-            # Thread messages (chronological, oldest to newest)
+            # Collect all messages into a scrollable container
+            messages_html = []
             for message in selected_thread.messages:
                 html_msg = format_thread_message(
                     sender=message.sender,
@@ -933,7 +959,15 @@ with col_thread:
                     timestamp=message.timestamp,
                     body=message.body
                 )
-                st.markdown(html_msg, unsafe_allow_html=True)
+                messages_html.append(html_msg)
+
+            # Render messages in a fixed-height scrollable container
+            container_html = f"""
+            <div class="thread-messages-container">
+                {''.join(messages_html)}
+            </div>
+            """
+            st.html(container_html)
 
             # Update enriched context for selected thread (for Task 5 - assistant sidebar)
             enriched = st.session_state.analyzer.analyze_thread(selected_thread)
