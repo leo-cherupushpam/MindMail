@@ -3,6 +3,7 @@ import sys
 import html
 import streamlit as st
 from datetime import datetime
+import streamlit_card as stc
 
 # Add parent directory to path so we can import services module
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -856,21 +857,25 @@ with col_list:
                 or any(st.session_state.search_query.lower() in msg.sender.lower() for msg in t.messages)
             ]
 
-        # Render email list with clickable cards
+        # Render email list with clickable cards using streamlit-card
         for idx, thread in enumerate(filtered_threads):
             is_selected = (idx == st.session_state.selected_thread_idx)
 
-            html_card = format_email_card(thread, is_selected)
+            # Extract email data
+            sender = thread.messages[0].sender if thread.messages else "Unknown"
+            preview = thread.messages[0].body[:80] + "..." if thread.messages and thread.messages[0].body else "No content"
 
-            if st.button(
-                html_card,
-                key=f"email_card_{idx}",
-                use_container_width=True,
-                help="Click to select this thread"
-            ):
-                st.session_state.selected_thread_idx = idx
-                st.session_state.chat_history = []  # Clear chat for new thread
-                st.rerun()
+            # Create clickable card with text as list [sender, preview]
+            stc.card(
+                title=thread.main_topic,
+                text=[f"From: {sender}", preview],
+                on_click=lambda idx=idx: (
+                    st.session_state.update({'selected_thread_idx': idx}),
+                    st.session_state.update({'chat_history': []}),
+                    st.rerun()
+                ),
+                key=f"email_card_{idx}"
+            )
     else:
         st.info("📭 No emails. Click 'Refresh' to fetch emails.")
 
