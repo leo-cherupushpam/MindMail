@@ -858,8 +858,10 @@ with col_list:
             ]
 
         # Render email list with clickable cards using streamlit-card
-        for idx, thread in enumerate(filtered_threads):
-            is_selected = (idx == st.session_state.selected_thread_idx)
+        for display_idx, thread in enumerate(filtered_threads):
+            # Find the actual index in the unfiltered list
+            actual_idx = st.session_state.email_threads.index(thread)
+            is_selected = (actual_idx == st.session_state.selected_thread_idx)
 
             # Extract email data
             sender = thread.messages[0].sender if thread.messages else "Unknown"
@@ -869,12 +871,12 @@ with col_list:
             stc.card(
                 title=thread.main_topic,
                 text=[f"From: {sender}", preview],
-                on_click=lambda idx=idx: (
-                    st.session_state.update({'selected_thread_idx': idx}),
+                on_click=lambda actual_idx=actual_idx: (
+                    st.session_state.update({'selected_thread_idx': actual_idx}),
                     st.session_state.update({'chat_history': []}),
                     st.rerun()
                 ),
-                key=f"email_card_{idx}"
+                key=f"email_card_{actual_idx}"
             )
     else:
         st.info("📭 No emails. Click 'Refresh' to fetch emails.")
