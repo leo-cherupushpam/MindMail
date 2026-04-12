@@ -1,6 +1,6 @@
 import html
 from datetime import datetime
-from services.models import EmailThread
+from services.models import EmailThread, EnrichedContext
 
 
 def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: str = "normal", action_items: list = None) -> str:
@@ -45,12 +45,29 @@ def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: s
     # Determine card styling based on selection state
     if is_selected:
         background = "#E3F2FD"
-        border = "1px solid #2563EB"
+        border = "2px solid #2563EB"
         shadow = "0 2px 8px rgba(37, 99, 235, 0.15)"
     else:
         background = "white"
         border = "1px solid #E5E7EB"
         shadow = "0 1px 2px rgba(0,0,0,0.05)"
+
+    # Determine urgency badge styling
+    if "urgent" in urgency.lower() or "high" in urgency.lower():
+        urgency_icon = "🔴"
+        urgency_color = "#DC2626"
+        urgency_bg = "#FEE2E2"
+        urgency_text = "High"
+    elif "medium" in urgency.lower() or "normal" in urgency.lower():
+        urgency_icon = "🟡"
+        urgency_color = "#D97706"
+        urgency_bg = "#FEF3C7"
+        urgency_text = "Medium"
+    else:
+        urgency_icon = "⚪"
+        urgency_color = "#9CA3AF"
+        urgency_bg = "#F3F4F6"
+        urgency_text = "Low"
 
     html_content = f"""
     <div style="
@@ -63,7 +80,19 @@ def format_email_card(thread: EmailThread, is_selected: bool = False, urgency: s
         box-shadow: {shadow};
         transition: all 150ms ease;
     ">
-        <div style="font-weight: 600; font-size: 15px; color: #111827; margin-bottom: 4px;">{sender}</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="font-weight: 600; font-size: 15px; color: #111827; flex: 1;">{sender}</div>
+            <div style="
+                background-color: {urgency_bg};
+                color: {urgency_color};
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 11px;
+                font-weight: 600;
+                white-space: nowrap;
+                margin-left: 8px;
+            ">{urgency_icon} {urgency_text}</div>
+        </div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
             <div style="font-size: 14px; color: #374151; flex: 1; margin-right: 12px; line-height: 1.3;">{subject}</div>
             <div style="font-size: 12px; color: #9CA3AF; white-space: nowrap;">{timestamp}</div>
@@ -127,3 +156,131 @@ def format_thread_message(sender: str, email: str, timestamp: str, body: str) ->
     </div>
     """
     return html_content
+
+
+def format_context_panel(enriched_context: EnrichedContext) -> str:
+    """
+    Render the context panel showing urgency, sentiment, key needs, and participants.
+
+    Args:
+        enriched_context: EnrichedContext object with analyzed email insights
+
+    Returns:
+        HTML string for the context panel
+    """
+    # Extract values with safe defaults
+    urgency = enriched_context.urgency_assessment if enriched_context.urgency_assessment else "normal"
+    sentiment_arc = enriched_context.sentiment_arc if enriched_context.sentiment_arc else "unknown"
+    participants = enriched_context.thread.participants if enriched_context.thread.participants else []
+    implicit_needs = enriched_context.implicit_needs if enriched_context.implicit_needs else []
+
+    # Determine urgency badge styling
+    if "urgent" in urgency.lower():
+        urgency_icon = "🔴"
+        urgency_bg = "#FEE2E2"
+        urgency_text = "High"
+    elif "high" in urgency.lower():
+        urgency_icon = "🔴"
+        urgency_bg = "#FEE2E2"
+        urgency_text = "High"
+    elif "medium" in urgency.lower() or "normal" in urgency.lower():
+        urgency_icon = "🟡"
+        urgency_bg = "#FEF3C7"
+        urgency_text = "Medium"
+    else:
+        urgency_icon = "⚪"
+        urgency_bg = "#F3F4F6"
+        urgency_text = "Low"
+
+    # Determine sentiment emoji
+    if "positive" in sentiment_arc.lower():
+        sentiment_emoji = "😊"
+    elif "negative" in sentiment_arc.lower():
+        sentiment_emoji = "😟"
+    else:
+        sentiment_emoji = "😐"
+
+    # Get first key need or use generic placeholder
+    key_need = implicit_needs[0] if implicit_needs else "Follow-up"
+    key_need = html.escape(key_need)[:30]  # Truncate to 30 chars
+
+    # Format participants list
+    participants_text = ", ".join(html.escape(p) for p in participants[:3])
+    if len(participants) > 3:
+        participants_text += f", +{len(participants)-3} more"
+
+    html_content = f"""
+    <div style="
+        background-color: #F9FAFB;
+        border-bottom: 1px solid #E5E7EB;
+        padding: 16px;
+        margin-bottom: 16px;
+        border-radius: 6px;
+    ">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px;">
+            <!-- Urgency Badge -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 600; color: #6B7280;">Urgency:</span>
+                <div style="
+                    background-color: {urgency_bg};
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    color: #991B1B;
+                    font-weight: 600;
+                ">
+                    {urgency_icon} {urgency_text}
+                </div>
+            </div>
+
+            <!-- Sentiment Badge -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 600; color: #6B7280;">Sentiment:</span>
+                <div style="color: #4B5563;">
+                    {sentiment_emoji} {sentiment_arc[:20]}
+                </div>
+            </div>
+
+            <!-- Key Need -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 600; color: #6B7280;">Key Need:</span>
+                <div style="
+                    background-color: #DBEAFE;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    color: #2563EB;
+                    font-weight: 600;
+                ">
+                    {key_need}
+                </div>
+            </div>
+
+            <!-- Participants -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 600; color: #6B7280;">Participants:</span>
+                <div style="color: #4B5563;">
+                    [{len(participants)}] {participants_text}
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+    return html_content
+
+
+def format_tone_example(tone: str) -> str:
+    """
+    Return an example draft response for a given tone.
+
+    Args:
+        tone: Tone type ("professional", "collaborative", "assertive", "empathetic")
+
+    Returns:
+        Example draft string
+    """
+    examples = {
+        "professional": "Thank you for reaching out. I appreciate your input and will review the details carefully. I'll have a response for you by Friday.",
+        "collaborative": "Got it—great points! Let's sync up to align on next steps. I'm thinking we could tackle this together.",
+        "assertive": "I understand the urgency. Here's what I can commit to: completion by Friday. I'll need X and Y from your team to proceed.",
+        "empathetic": "I hear you, and I understand how important this is. I'm here to help. Let me dig into this and get you an answer soon."
+    }
+    return examples.get(tone.lower(), examples["professional"])
