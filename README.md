@@ -1,6 +1,6 @@
-# Gmail Email Assistant MVP
+# Gmail Email Assistant
 
-An intelligent email management tool that uses AI to help you understand, summarize, and respond to emails with context-aware insights.
+An intelligent email management tool for GMAIL that uses AI to help you understand, summarize, and respond to emails with context-aware insights.
 
 ## Features
 
