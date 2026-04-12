@@ -19,8 +19,13 @@ Ask natural language questions about email content. The assistant understands co
 - "What action do I need to take?"
 - "What are the implicit concerns from the customer?"
 
+<img width="1895" height="900" alt="image" src="https://github.com/user-attachments/assets/24326679-8d2a-40e0-902d-10623071d8f4" />
+
+
 #### Draft (📋)
 Generate professional email replies that understand context and address underlying needs. Matches the appropriate tone based on the email thread's sentiment and urgency.
+
+<img width="1853" height="842" alt="image" src="https://github.com/user-attachments/assets/64db2348-f5b7-4c32-8b91-2561e8d8fcb2" />
 
 **Supports:**
 - Professional tone recommendations
