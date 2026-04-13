@@ -274,3 +274,144 @@ def format_tone_example(tone: str) -> str:
         "empathetic": "I hear you, and I understand how important this is. I'm here to help. Let me dig into this and get you an answer soon."
     }
     return examples.get(tone.lower(), examples["professional"])
+
+
+AVATAR_COLORS = [
+    "#1A73E8",  # blue
+    "#34A853",  # green
+    "#EA4335",  # red
+    "#FBBC04",  # yellow
+    "#FF6D00",  # orange
+    "#9C27B0",  # purple
+    "#00ACC1",  # teal
+    "#F06292",  # pink
+]
+
+
+def get_avatar_html(sender: str, size: int = 40) -> str:
+    """Return an HTML colored circle avatar with the sender's initial."""
+    initial = sender[0].upper() if sender else "?"
+    color = AVATAR_COLORS[ord(initial) % len(AVATAR_COLORS)]
+    return (
+        f'<div class="gmail-avatar" style="width:{size}px;height:{size}px;background:{color};">'
+        f'{html.escape(initial)}</div>'
+    )
+
+
+def render_top_bar() -> str:
+    """Return the static Gmail top bar HTML."""
+    return """
+    <div class="gmail-topbar">
+        <span style="font-size:20px; color:#5F6368; cursor:pointer;">☰</span>
+        <div class="gmail-logo">
+            <span>G</span>mail
+        </div>
+        <div class="gmail-search">
+            🔍&nbsp;&nbsp;Search mail
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-left:auto; color:#5F6368; font-size:20px; padding-left:16px;">
+            <span style="cursor:pointer;">?</span>
+            <span style="cursor:pointer;">⚙</span>
+            <span style="cursor:pointer;">✦</span>
+            <div style="width:32px;height:32px;border-radius:50%;background:#1A73E8;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;cursor:pointer;">L</div>
+        </div>
+    </div>
+    """
+
+
+def render_left_nav(inbox_count: int = 14) -> str:
+    """Return the static Gmail left navigation HTML."""
+    return f"""
+    <div class="gmail-nav">
+        <button class="gmail-compose">✏️&nbsp;&nbsp;Compose</button>
+        <div class="gmail-nav-item active">
+            <span>📥 Inbox</span>
+            <span class="gmail-nav-count">{inbox_count}</span>
+        </div>
+        <div class="gmail-nav-item"><span>⭐ Starred</span></div>
+        <div class="gmail-nav-item"><span>🕐 Snoozed</span></div>
+        <div class="gmail-nav-item"><span>📤 Sent</span></div>
+        <div class="gmail-nav-item">
+            <span>📝 Drafts</span>
+            <span class="gmail-nav-count">3</span>
+        </div>
+        <div class="gmail-nav-item">
+            <span>🚫 Spam</span>
+            <span class="gmail-nav-count">12</span>
+        </div>
+        <div class="gmail-nav-item"><span>🗑️ Trash</span></div>
+        <div class="gmail-nav-item"><span>▾ More</span></div>
+        <div class="gmail-nav-section">Labels</div>
+        <div class="gmail-nav-item"><span>🏷️ Work</span></div>
+    </div>
+    """
+
+
+def render_inbox_row(thread: EmailThread, is_unread: bool = True) -> str:
+    """Return a single Gmail-style email list row as HTML."""
+    sender_raw = thread.messages[0].sender.split("@")[0].replace(".", " ").title() if thread.messages else "Unknown"
+    sender = html.escape(sender_raw)
+    subject = html.escape(thread.main_topic[:60])
+    snippet = html.escape(thread.messages[0].body[:80].replace("\n", " ")) if thread.messages else ""
+    snippet = snippet + "..." if len(thread.messages[0].body) > 80 else snippet
+
+    # Format timestamp
+    timestamp = ""
+    if thread.messages and thread.messages[0].timestamp:
+        try:
+            dt = datetime.fromisoformat(thread.messages[0].timestamp.replace("Z", "+00:00"))
+            now = datetime.now(dt.tzinfo) if dt.tzinfo else datetime.now()
+            diff = now - dt
+            if diff.days == 0:
+                timestamp = dt.strftime("%-I:%M %p")
+            elif diff.days < 7:
+                timestamp = dt.strftime("%a")
+            else:
+                timestamp = dt.strftime("%b %d")
+        except (ValueError, AttributeError):
+            timestamp = ""
+
+    read_class = "unread" if is_unread else "read"
+
+    return f"""
+    <div class="gmail-row {read_class}">
+        <span style="color:#5F6368; flex-shrink:0;">☐</span>
+        <span style="color:#5F6368; flex-shrink:0;">☆</span>
+        <div class="gmail-row-sender {read_class}">{sender}</div>
+        <div class="gmail-row-subject {read_class}">
+            {subject}
+            <span class="gmail-row-snippet">&nbsp;– {snippet}</span>
+        </div>
+        <div class="gmail-row-time {read_class}">{timestamp}</div>
+    </div>
+    """
+
+
+def render_reading_pane_message(sender: str, email_addr: str, timestamp: str, body: str) -> str:
+    """Return a single message bubble in the Gmail reading pane."""
+    # Format timestamp
+    formatted_ts = timestamp
+    try:
+        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        formatted_ts = dt.strftime("%a, %b %d, %Y, %-I:%M %p")
+    except (ValueError, AttributeError):
+        pass
+
+    avatar = get_avatar_html(sender)
+    sender_display = html.escape(sender.split("@")[0].replace(".", " ").title())
+    email_display = html.escape(email_addr)
+    body_escaped = html.escape(body)
+
+    return f"""
+    <div class="gmail-message">
+        <div class="gmail-message-header">
+            {avatar}
+            <div>
+                <div class="gmail-sender-name">{sender_display}</div>
+                <div class="gmail-sender-email">&lt;{email_display}&gt;</div>
+            </div>
+            <div class="gmail-message-time">{html.escape(formatted_ts)}</div>
+        </div>
+        <div class="gmail-message-body">{body_escaped}</div>
+    </div>
+    """
