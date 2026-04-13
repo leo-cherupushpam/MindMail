@@ -347,6 +347,22 @@ st.markdown("""
     div[data-testid="stButton"] > button:hover {
         background: #F6F8FC !important;
     }
+
+    /* Invisible row-click buttons that overlay the HTML email rows */
+    div[data-testid="stButton"]:has(button[kind="secondary"][data-testid="baseButton-secondary"]) {
+        margin-top: -52px;
+        height: 52px;
+        position: relative;
+        z-index: 10;
+    }
+    div[data-testid="stButton"]:has(button[kind="secondary"][data-testid="baseButton-secondary"]) > button {
+        opacity: 0 !important;
+        height: 52px !important;
+        width: 100% !important;
+        cursor: pointer !important;
+        border: none !important;
+        background: transparent !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
