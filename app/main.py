@@ -21,10 +21,12 @@ from services.gmail_auth import (  # noqa: E402
 from services.gmail_fetcher import fetch_all_emails  # noqa: E402
 from services.cache import load_cache, save_cache, is_cache_valid  # noqa: E402
 from services.ui_helpers import (  # noqa: E402
-    format_email_card,
-    format_thread_message,
-    format_context_panel,
-    format_tone_example
+    format_tone_example,
+    get_avatar_html,
+    render_top_bar,
+    render_left_nav,
+    render_inbox_row,
+    render_reading_pane_message,
 )
 
 # Page configuration
@@ -393,6 +395,8 @@ if 'selected_enriched_context' not in st.session_state:
     st.session_state.selected_enriched_context = None
 if 'assistant_feature' not in st.session_state:
     st.session_state.assistant_feature = None  # "draft", "summarize", or None
+if 'view' not in st.session_state:
+    st.session_state.view = "inbox"  # "inbox" | "email"
 
 # Create 3-column layout: Gmail inbox (left) | Thread (middle) | Assistant sidebar (right)
 col_list, col_thread, col_assistant = st.columns([1, 1.5, 1], gap="small")
