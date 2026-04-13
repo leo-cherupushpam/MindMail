@@ -398,311 +398,137 @@ if 'assistant_feature' not in st.session_state:
 if 'view' not in st.session_state:
     st.session_state.view = "inbox"  # "inbox" | "email"
 
-# Create 3-column layout: Gmail inbox (left) | Thread (middle) | Assistant sidebar (right)
-col_list, col_thread, col_assistant = st.columns([1, 1.5, 1], gap="small")
+# ── Top bar (always visible) ──────────────────────────────────────────────
+st.markdown(render_top_bar(), unsafe_allow_html=True)
 
-# LEFT COLUMN: EMAIL LIST
-with col_list:
-    st.markdown("### 📧 Inbox")
+# ── Main layout: nav | content | ai panel ────────────────────────────────
+nav_col, content_col, ai_col = st.columns([1, 4, 2], gap="small")
 
-    if st.session_state.sample_threads:
-        # Render email list with clickable cards
-        for display_idx, thread in enumerate(st.session_state.sample_threads):
-            # Find the actual index in the unfiltered list
-            actual_idx = st.session_state.sample_threads.index(thread)
-            is_selected = (actual_idx == st.session_state.selected_thread_idx)
+with nav_col:
+    st.markdown(
+        render_left_nav(inbox_count=len(st.session_state.sample_threads)),
+        unsafe_allow_html=True,
+    )
 
-            # Get urgency from enriched context if available
-            urgency = "normal"
-            if st.session_state.enriched_contexts and actual_idx < len(st.session_state.enriched_contexts):
-                enriched = st.session_state.enriched_contexts[actual_idx]
-                if enriched.urgency_assessment:
-                    urgency = enriched.urgency_assessment
+with content_col:
+    if st.session_state.view == "inbox":
+        # Tab bar
+        st.markdown("""
+        <div class="gmail-tabs">
+            <div class="gmail-tab active">📥 Primary</div>
+            <div class="gmail-tab">🏷️ Promotions</div>
+            <div class="gmail-tab">👥 Social</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-            # Render email card
-            html_card = format_email_card(thread, is_selected, urgency)
-            st.markdown(html_card, unsafe_allow_html=True)
-
-            # Hidden button (empty label, styled minimally)
-            if st.button("", key=f"select_{actual_idx}", use_container_width=True):
-                st.session_state.selected_thread_idx = actual_idx
+        # Email rows — first 5 are unread, rest are read
+        threads = st.session_state.sample_threads
+        for idx, thread in enumerate(threads):
+            is_unread = idx < 5
+            row_html = render_inbox_row(thread, is_unread=is_unread)
+            st.markdown(row_html, unsafe_allow_html=True)
+            # Invisible Streamlit button that captures click
+            if st.button("", key=f"open_thread_{idx}", use_container_width=True,
+                         help=thread.main_topic):
+                st.session_state.selected_thread_idx = idx
+                st.session_state.view = "email"
+                st.session_state.assistant_feature = None
                 st.session_state.chat_history = []
                 st.rerun()
+
     else:
-        st.info("📭 No emails. Click 'Refresh' to fetch emails.")
+        thread = st.session_state.sample_threads[st.session_state.selected_thread_idx]
 
-# ============================================================================
-# MIDDLE COLUMN: THREAD VIEWER
-# ============================================================================
-with col_thread:
-    st.markdown("### 📧 Email Thread")
+        # Reading pane header with subject
+        st.markdown(f"""
+        <div class="gmail-reading-header">
+            <div class="gmail-reading-subject">{html.escape(thread.main_topic)}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    if st.session_state.sample_threads:
-        if 0 <= st.session_state.selected_thread_idx < len(st.session_state.sample_threads):
-            selected_thread = st.session_state.sample_threads[st.session_state.selected_thread_idx]
+        # Back button (Streamlit button so it triggers rerun)
+        if st.button("← Back", key="back_to_inbox"):
+            st.session_state.view = "inbox"
+            st.session_state.assistant_feature = None
+            st.rerun()
 
-            st.markdown(f"## {selected_thread.main_topic}")
+        # Render all messages in the thread
+        for message in thread.messages:
+            msg_html = render_reading_pane_message(
+                sender=message.sender,
+                email_addr=message.sender,
+                timestamp=message.timestamp,
+                body=message.body,
+            )
+            st.markdown(msg_html, unsafe_allow_html=True)
 
-            # Calculate date range from messages
-            if selected_thread.messages:
-                try:
-                    dates = []
-                    for msg in selected_thread.messages:
-                        dt = datetime.fromisoformat(msg.timestamp.replace('Z', '+00:00'))
-                        dates.append(dt.strftime("%b %d"))
-                    date_range = f"{dates[0]} - {dates[-1]}" if len(dates) > 1 else dates[0]
-                except (ValueError, AttributeError):
-                    date_range = "unknown dates"
-            else:
-                date_range = "unknown dates"
+        # Static reply/forward bar
+        st.markdown("""
+        <div class="gmail-reply-bar">
+            <button class="gmail-reply-btn">↩ Reply</button>
+            <button class="gmail-reply-btn">↪ Forward</button>
+        </div>
+        """, unsafe_allow_html=True)
 
-            st.caption(f"{len(selected_thread.messages)} messages from {date_range}")
-            st.caption(f"From: {', '.join(selected_thread.participants)}")
-            st.markdown("---")
+with ai_col:
+    if st.session_state.view == "email":
+        thread = st.session_state.sample_threads[st.session_state.selected_thread_idx]
+        enriched = st.session_state.enriched_contexts[st.session_state.selected_thread_idx]
 
-            # Collect all messages into a scrollable container
-            messages_html = []
-            for message in selected_thread.messages:
-                html_msg = format_thread_message(
-                    sender=message.sender,
-                    email=message.sender,
-                    timestamp=message.timestamp,
-                    body=message.body
-                )
-                messages_html.append(html_msg)
+        st.markdown('<div class="ai-panel-header">✦ Gmail Assistant</div>', unsafe_allow_html=True)
 
-            # Render messages in a fixed-height scrollable container
-            container_html = f"""
-            <div class="thread-messages-container">
-                {''.join(messages_html)}
-            </div>
-            """
-            st.html(container_html)
+        col_ask, col_draft, col_summarize = st.columns(3, gap="small")
+        with col_ask:
+            if st.button("💬 Ask", use_container_width=True, key="ai_ask_btn"):
+                st.session_state.assistant_feature = "ask"
+        with col_draft:
+            if st.button("✏️ Draft", use_container_width=True, key="ai_draft_btn"):
+                st.session_state.assistant_feature = "draft"
+        with col_summarize:
+            if st.button("📊 Sum", use_container_width=True, key="ai_sum_btn"):
+                st.session_state.assistant_feature = "summarize"
 
-            # Update enriched context for selected thread
-            enriched = st.session_state.analyzer.analyze_thread(selected_thread)
-            st.session_state.selected_enriched_context = enriched
-        else:
-            st.info("Select an email thread from the list")
-    else:
-        st.info("📭 No emails. Click 'Refresh' to fetch emails.")
+        st.markdown("---")
 
-# ============================================================================
-# RIGHT COLUMN: ASSISTANT SIDEBAR
-# ============================================================================
-with col_assistant:
-    if st.session_state.sample_threads:
-        if 0 <= st.session_state.selected_thread_idx < len(st.session_state.sample_threads):
-            selected_thread = st.session_state.sample_threads[st.session_state.selected_thread_idx]
+        # ── Ask ──────────────────────────────────────────────────────────
+        if st.session_state.assistant_feature == "ask":
+            question = st.text_area("Your question:", placeholder="What action do I need to take?",
+                                    height=80, key="ask_input", label_visibility="collapsed")
+            if st.button("Ask", key="ask_submit_btn", use_container_width=True):
+                if question.strip():
+                    with st.spinner("Thinking..."):
+                        answer = ask_question(question, enriched)
+                    st.markdown(f'<div class="ai-output-card">{html.escape(answer)}</div>',
+                                unsafe_allow_html=True)
 
-            # ========== ASSISTANT FEATURES ==========
-            st.markdown("### How can I help?")
-            col_ask_btn, col_draft_btn, col_summarize_btn = st.columns(3, gap="small")
+        # ── Draft ────────────────────────────────────────────────────────
+        elif st.session_state.assistant_feature == "draft":
+            intent = st.text_area("Intent (optional):", height=60, key="draft_intent",
+                                  placeholder="e.g. Accept and propose a timeline",
+                                  label_visibility="collapsed")
+            tone = st.selectbox("Tone", ["professional", "collaborative", "assertive", "empathetic"],
+                                key="draft_tone", label_visibility="collapsed")
+            if st.button("Generate Draft", key="draft_submit_btn", use_container_width=True):
+                with st.spinner("Drafting..."):
+                    draft = generate_draft_reply(enriched, user_intent=intent or None, tone=tone)
+                st.markdown(f'<div class="ai-output-card">{html.escape(draft)}</div>',
+                            unsafe_allow_html=True)
+                col1, col2 = st.columns(2, gap="small")
+                with col1:
+                    if st.button("📋 Copy", key="draft_copy_btn", use_container_width=True):
+                        st.success("Copied!")
+                with col2:
+                    if st.button("🔄 Retry", key="draft_retry_btn", use_container_width=True):
+                        st.rerun()
 
-            with col_ask_btn:
-                if st.button(
-                    "💬 Ask",
-                    use_container_width=True,
-                    key="feature_ask_btn",
-                    type="primary" if st.session_state.assistant_feature == "ask" else "secondary"
-                ):
-                    st.session_state.assistant_feature = None if st.session_state.assistant_feature == "ask" else "ask"
-                    st.rerun()
+        # ── Summarize ────────────────────────────────────────────────────
+        elif st.session_state.assistant_feature == "summarize":
+            if st.button("Summarize thread", key="sum_submit_btn", use_container_width=True):
+                with st.spinner("Summarizing..."):
+                    summary = summarize_emails(enriched)
+                st.markdown(f'<div class="ai-output-card">{html.escape(summary)}</div>',
+                            unsafe_allow_html=True)
 
-            with col_draft_btn:
-                if st.button(
-                    "📝 Draft",
-                    use_container_width=True,
-                    key="feature_draft_btn",
-                    type="primary" if st.session_state.assistant_feature == "draft" else "secondary"
-                ):
-                    st.session_state.assistant_feature = None if st.session_state.assistant_feature == "draft" else "draft"
-                    st.rerun()
-
-            with col_summarize_btn:
-                if st.button(
-                    "📋 Summarize",
-                    use_container_width=True,
-                    key="feature_summarize_btn",
-                    type="primary" if st.session_state.assistant_feature == "summarize" else "secondary"
-                ):
-                    st.session_state.assistant_feature = None if st.session_state.assistant_feature == "summarize" else "summarize"
-                    st.rerun()
-
-            st.markdown("---")
-
-            # ========== ASK FEATURE ==========
-            if st.session_state.assistant_feature == "ask":
-                st.markdown("#### 💬 Ask a Question")
-
-                # Display conversation history
-                if st.session_state.chat_history:
-                    for message in st.session_state.chat_history:
-                        if message["role"] == "user":
-                            st.markdown(f"**You:** {message['content']}")
-                        else:
-                            st.markdown(f"**Assistant:** {message['content']}")
-                        st.markdown("---")
-
-                # Question input
-                user_question = st.text_input(
-                    "Ask about this email:",
-                    placeholder="E.g., 'What's the main topic?' or 'When is the deadline?'",
-                    key="ask_question_input"
-                )
-
-                # Ask button
-                if st.button("Send →", use_container_width=True, key="ask_send_btn"):
-                    if user_question:
-                        # Add user message to history
-                        st.session_state.chat_history.append({
-                            "role": "user",
-                            "content": user_question
-                        })
-
-                        # Get answer using enriched context
-                        context = st.session_state.selected_enriched_context
-                        if context:
-                            try:
-                                with st.spinner("Thinking..."):
-                                    answer = ask_question(user_question, context)
-
-                                if answer and not answer.startswith("Error:"):
-                                    # Add assistant response to history
-                                    st.session_state.chat_history.append({
-                                        "role": "assistant",
-                                        "content": answer
-                                    })
-                                    st.rerun()
-                                else:
-                                    st.error(f"Failed to get answer: {answer}")
-                            except Exception as e:
-                                st.error(f"Error: {str(e)}")
-                        else:
-                            st.error("No context available for this email")
-                    else:
-                        st.warning("Please ask a question about this email")
-
-            # ========== DRAFT FEATURE ==========
-            if st.session_state.assistant_feature == "draft":
-                st.markdown("#### ✉️ Draft a Reply")
-
-                st.markdown("**What do you want to convey?**")
-                intent = st.text_area(
-                    "Intent:",
-                    placeholder="E.g., 'Confirm the meeting time' or 'Ask for approval on budget'",
-                    label_visibility="collapsed",
-                    height=80,
-                    key="draft_intent"
-                )
-
-                # Tone selector dropdown and character count on same line
-                col_tone, col_char = st.columns([1, 1.2], gap="small")
-                with col_tone:
-                    selected_tone = st.selectbox(
-                        "Tone:",
-                        ["Professional", "Collaborative", "Assertive", "Empathetic"],
-                        index=0,
-                        label_visibility="collapsed",
-                        key="draft_tone_selector"
-                    ).lower()
-
-                with col_char:
-                    char_count = len(intent) if intent else 0
-                    st.caption(f"**Tone:** {selected_tone.capitalize()} | **Characters:** {char_count} / 500")
-
-                if st.button("Draft Reply →", use_container_width=True, key="draft_generate_btn"):
-                    if intent:
-                        context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else None
-                        if context:
-                            try:
-                                # Show processing steps
-                                progress_container = st.container()
-                                with progress_container:
-                                    col_steps = st.columns([0.05, 0.95])
-                                    with col_steps[0]:
-                                        st.write("🔄")
-                                    with col_steps[1]:
-                                        st.write("Analyzing email...")
-
-                                # Generate draft
-                                draft = generate_draft_reply(context, intent, selected_tone.lower())
-
-                                # Clear and update progress
-                                progress_container.empty()
-
-                                if draft and not draft.startswith("Error:"):
-                                    with progress_container:
-                                        st.success(f"✅ Draft generated in {selected_tone} tone")
-
-                                    # Display draft
-                                    st.markdown("**Your Draft:**")
-                                    draft_html = f"""
-                                    <div class="output-card">{html.escape(draft)}</div>
-                                    """
-                                    st.html(draft_html)
-
-                                    # Action buttons
-                                    col1, col2 = st.columns(2, gap="small")
-                                    with col1:
-                                        if st.button("📋 Copy", use_container_width=True, key="draft_copy_btn"):
-                                            st.success("✅ Copied to clipboard!")
-                                    with col2:
-                                        if st.button("🔄 Try Again", use_container_width=True, key="draft_regen_btn"):
-                                            st.rerun()
-                                else:
-                                    progress_container.empty()
-                                    st.error(f"Failed to generate draft: {draft}")
-                            except Exception as e:
-                                st.error(f"Error generating draft: {str(e)}")
-                    else:
-                        st.warning("Please describe what you want to convey")
-
-            # ========== SUMMARIZE FEATURE ==========
-            elif st.session_state.assistant_feature == "summarize":
-                st.markdown("#### 📊 Summarize")
-
-                if st.button("Generate Summary", use_container_width=True, key="summarize_generate_btn"):
-                    context = st.session_state.selected_enriched_context if 'selected_enriched_context' in st.session_state else None
-                    if context:
-                        try:
-                            with st.spinner("Analyzing thread..."):
-                                summary = summarize_emails(context)
-
-                            if summary and not summary.startswith("Error:"):
-                                st.markdown("**Summary:**")
-                                summary_html = f"""
-                                <div class="output-card">{html.escape(summary)}</div>
-                                """
-                                st.html(summary_html)
-
-                                # Copy button
-                                col1, col2 = st.columns(2, gap="small")
-                                with col1:
-                                    if st.button("📋 Copy Summary", use_container_width=True, key="summary_copy_btn"):
-                                        st.success("✅ Copied to clipboard!")
-                                with col2:
-                                    if st.button("🔄 Regenerate", use_container_width=True, key="summary_regen_btn"):
-                                        st.rerun()
-                            else:
-                                st.error(f"Failed to generate summary: {summary}")
-                        except Exception as e:
-                            st.error(f"Error generating summary: {str(e)}")
-
-            # ========== NO FEATURE SELECTED ==========
-            else:
-                st.info("👆 Click 'Draft' or 'Summarize' to get started")
-
-        else:
-            st.info("Select an email to analyze")
-    else:
-        st.info("📭 Authenticate to use assistant")
-
-# Footer
-st.markdown("---")
-st.markdown(
-    "<div style='text-align: center; color: gray; font-size: 12px;'>"
-    "Gmail Email Assistant MVP • Built with Streamlit & OpenAI"
-    "</div>",
-    unsafe_allow_html=True
-)
+        # ── No feature selected ──────────────────────────────────────────
+        elif st.session_state.assistant_feature is None:
+            st.caption("Select an email and choose an action above.")
