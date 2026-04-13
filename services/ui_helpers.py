@@ -353,7 +353,7 @@ def render_inbox_row(thread: EmailThread, is_unread: bool = True) -> str:
     sender = html.escape(sender_raw)
     subject = html.escape(thread.main_topic[:60])
     snippet = html.escape(thread.messages[0].body[:80].replace("\n", " ")) if thread.messages else ""
-    snippet = snippet + "..." if len(thread.messages[0].body) > 80 else snippet
+    snippet = snippet + "..." if thread.messages and len(thread.messages[0].body) > 80 else snippet
 
     # Format timestamp
     timestamp = ""
