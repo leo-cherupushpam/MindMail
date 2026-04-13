@@ -423,8 +423,12 @@ if 'view' not in st.session_state:
 # ── Top bar (always visible) ──────────────────────────────────────────────
 st.markdown(render_top_bar(), unsafe_allow_html=True)
 
-# ── Main layout: nav | content | ai panel ────────────────────────────────
-nav_col, content_col, ai_col = st.columns([1, 4, 2], gap="small")
+# ── Main layout: varies by view ───────────────────────────────────────────
+if st.session_state.view == "inbox":
+    nav_col, content_col = st.columns([1, 5], gap="small")
+    ai_col = None
+else:
+    nav_col, content_col, ai_col = st.columns([1, 4, 2], gap="small")
 
 with nav_col:
     st.markdown(
@@ -492,8 +496,8 @@ with content_col:
         </div>
         """, unsafe_allow_html=True)
 
-with ai_col:
-    if st.session_state.view == "email":
+if ai_col is not None:
+    with ai_col:
         thread = st.session_state.sample_threads[st.session_state.selected_thread_idx]
         enriched = st.session_state.enriched_contexts[st.session_state.selected_thread_idx]
 
