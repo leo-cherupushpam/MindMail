@@ -348,20 +348,26 @@ st.markdown("""
         background: #F6F8FC !important;
     }
 
-    /* Invisible row-click buttons that overlay the HTML email rows */
-    div[data-testid="stButton"]:has(button[kind="secondary"][data-testid="baseButton-secondary"]) {
-        margin-top: -52px;
-        height: 52px;
-        position: relative;
-        z-index: 10;
+    /* Invisible row-click buttons: collapse wrapper to 0 height, float button up over the row */
+    div[data-testid="stButton"]:has(p:empty) {
+        height: 0 !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        position: relative !important;
+        z-index: 10 !important;
     }
-    div[data-testid="stButton"]:has(button[kind="secondary"][data-testid="baseButton-secondary"]) > button {
-        opacity: 0 !important;
-        height: 52px !important;
+    div[data-testid="stButton"]:has(p:empty) > button {
+        position: absolute !important;
+        top: -52px !important;
+        left: 0 !important;
         width: 100% !important;
+        height: 52px !important;
+        opacity: 0 !important;
         cursor: pointer !important;
         border: none !important;
         background: transparent !important;
+        padding: 0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
