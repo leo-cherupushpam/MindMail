@@ -35,779 +35,315 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # Hide native sidebar, we'll use custom layout
 )
 
-# Design System & Custom CSS
+# Gmail-style CSS
 st.markdown("""
 <style>
-    /* ============================================
-       DESIGN TOKENS - Color Palette
-       ============================================ */
-    :root {
-        /* Primary Colors */
-        --color-primary: #2563EB;
-        --color-primary-dark: #1D4ED8;
-        --color-primary-light: #DBEAFE;
+    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap');
 
-        /* Semantic Colors */
-        --color-success: #10B981;
-        --color-success-light: #ECFDF5;
-        --color-warning: #F59E0B;
-        --color-warning-light: #FFFBEB;
-        --color-error: #EF4444;
-        --color-error-light: #FEF2F2;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Neutral Colors */
-        --color-neutral-50: #F9FAFB;
-        --color-neutral-100: #F3F4F6;
-        --color-neutral-200: #E5E7EB;
-        --color-neutral-400: #9CA3AF;
-        --color-neutral-600: #4B5563;
-        --color-neutral-900: #111827;
-
-        /* ============================================
-           DESIGN TOKENS - Typography
-           ============================================ */
-        --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-        /* Font Sizes */
-        --font-size-xs: 12px;
-        --font-size-sm: 14px;
-        --font-size-base: 16px;
-        --font-size-lg: 18px;
-        --font-size-xl: 24px;
-        --font-size-2xl: 32px;
-
-        /* Font Weights */
-        --font-weight-regular: 400;
-        --font-weight-medium: 500;
-        --font-weight-semibold: 600;
-        --font-weight-bold: 700;
-
-        /* ============================================
-           DESIGN TOKENS - Spacing (8px base unit)
-           ============================================ */
-        --spacing-xs: 4px;
-        --spacing-sm: 8px;
-        --spacing-md: 16px;
-        --spacing-lg: 24px;
-        --spacing-xl: 32px;
-        --spacing-2xl: 48px;
-
-        /* ============================================
-           DESIGN TOKENS - Border & Shadow
-           ============================================ */
-        --border-radius-sm: 4px;
-        --border-radius-md: 8px;
-        --border-radius-lg: 12px;
-
-        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-        --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
-
-        /* Line Height */
-        --line-height-tight: 1.25;
-        --line-height-normal: 1.5;
-        --line-height-relaxed: 1.75;
+    html, body, [data-testid="stAppViewContainer"] {
+        background: #FFFFFF !important;
+        font-family: 'Google Sans', Roboto, Arial, sans-serif !important;
     }
 
-    /* ============================================
-       GLOBAL STYLES & RESETS
-       ============================================ */
-    * {
-        box-sizing: border-box;
+    /* Hide Streamlit chrome */
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    footer,
+    #MainMenu { display: none !important; }
+
+    /* Remove default Streamlit padding */
+    .main .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
     }
 
-    body {
-        font-family: var(--font-family);
-        font-size: var(--font-size-base);
-        line-height: var(--line-height-normal);
-        color: var(--color-neutral-900);
-        background-color: white;
-        margin: 0;
-        padding: 0;
-    }
+    /* Remove gap between Streamlit columns */
+    [data-testid="column"] { padding: 0 !important; }
 
-    /* ============================================
-       ACCESSIBILITY - Focus States
-       ============================================ */
-
-    /* Global Focus Style */
-    *:focus-visible {
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
-    }
-
-    /* Skip to Main Link */
-    .skip-to-main {
-        position: absolute;
-        top: -40px;
-        left: 0;
-        background-color: var(--color-primary);
-        color: white;
-        padding: 8px 16px;
-        text-decoration: none;
-        border-radius: var(--border-radius-md);
-        font-size: var(--font-size-sm);
-    }
-
-    .skip-to-main:focus {
+    /* Gmail top bar */
+    .gmail-topbar {
+        display: flex;
+        align-items: center;
+        height: 64px;
+        padding: 0 16px;
+        border-bottom: 1px solid #E0E0E0;
+        background: #FFFFFF;
+        position: sticky;
         top: 0;
-        z-index: 10000;
+        z-index: 100;
     }
-
-    /* Link Styles */
-    a {
-        color: var(--color-primary);
-        text-decoration: none;
-        transition: color 150ms ease;
+    .gmail-logo {
+        font-size: 22px;
+        color: #5F6368;
+        margin-left: 8px;
+        margin-right: 24px;
+        font-weight: 400;
     }
-
-    a:hover {
-        color: var(--color-primary-dark);
-        text-decoration: underline;
-    }
-
-    /* ============================================
-       COMPONENT STYLES
-       ============================================ */
-
-    /* Main Header */
-    .main-header {
-        font-size: var(--font-size-2xl);
-        font-weight: var(--font-weight-bold);
-        margin-bottom: var(--spacing-sm);
-        color: var(--color-neutral-900);
-    }
-
-    /* Feature Card */
-    .feature-card {
-        background-color: var(--color-neutral-50);
-        border: 1px solid var(--color-neutral-200);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-        margin-bottom: var(--spacing-md);
-        height: 180px;
-        box-shadow: var(--shadow-sm);
-        transition: all 200ms ease-out;
-        cursor: pointer;
-    }
-
-    .feature-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: scale(1.02);
-    }
-
-    .feature-card.active {
-        background-color: var(--color-primary-light);
-        color: var(--color-primary);
-        border-color: var(--color-primary);
-    }
-
-    /* Email Card Hover State */
-    .email-card:hover {
-        box-shadow: var(--shadow-md);
-        background-color: #F9FAFB;
-    }
-
-    /* Success Box */
-    .success-box {
-        background-color: var(--color-success-light);
-        border-left: 4px solid var(--color-success);
-        padding: var(--spacing-lg);
-        border-radius: var(--border-radius-md);
-        margin: var(--spacing-lg) 0;
-        color: var(--color-neutral-900);
-    }
-
-    /* Info Box */
-    .info-box {
-        background-color: #EFF6FF;
-        border-left: 4px solid var(--color-primary);
-        padding: var(--spacing-lg);
-        border-radius: var(--border-radius-md);
-        margin: var(--spacing-lg) 0;
-        color: var(--color-neutral-900);
-    }
-
-    /* Warning Box */
-    .warning-box {
-        background-color: var(--color-warning-light);
-        border-left: 4px solid var(--color-warning);
-        padding: var(--spacing-lg);
-        border-radius: var(--border-radius-md);
-        margin: var(--spacing-lg) 0;
-        color: var(--color-neutral-900);
-    }
-
-    /* Error Box */
-    .error-box {
-        background-color: var(--color-error-light);
-        border-left: 4px solid var(--color-error);
-        padding: var(--spacing-lg);
-        border-radius: var(--border-radius-md);
-        margin: var(--spacing-lg) 0;
-        color: var(--color-neutral-900);
-    }
-
-    /* Input Card Container */
-    .input-card {
-        background-color: var(--color-neutral-50);
-        border: 1px solid var(--color-neutral-200);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-        box-shadow: var(--shadow-sm);
-        margin-bottom: var(--spacing-lg);
-    }
-
-    .input-card label {
-        display: block;
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-medium);
-        color: var(--color-neutral-900);
-        margin-bottom: var(--spacing-sm);
-    }
-
-    /* Chat Message Bubble - User */
-    .chat-message.user-message {
-        margin-bottom: var(--spacing-md);
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .chat-message.user-message > div {
-        background-color: var(--color-primary);
-        color: white;
-        padding: 12px 16px;
-        border-radius: var(--border-radius-lg);
-        max-width: 70%;
-        word-wrap: break-word;
-        box-shadow: var(--shadow-sm);
-        transition: box-shadow 150ms ease;
-    }
-
-    .chat-message.user-message > div:hover {
-        box-shadow: var(--shadow-md);
-    }
-
-    /* Chat Message Bubble - Assistant */
-    .chat-message.assistant-message {
-        margin-bottom: var(--spacing-md);
-        display: flex;
-        justify-content: flex-start;
-    }
-
-    .chat-message.assistant-message > div {
-        background-color: var(--color-neutral-100);
-        color: var(--color-neutral-900);
-        padding: 12px 16px;
-        border-radius: var(--border-radius-lg);
-        max-width: 70%;
-        word-wrap: break-word;
-        box-shadow: var(--shadow-sm);
-        transition: box-shadow 150ms ease;
-    }
-
-    .chat-message.assistant-message > div:hover {
-        box-shadow: var(--shadow-md);
-    }
-
-    /* Button Styles */
-    .stButton > button {
-        width: 100%;
-        border-radius: var(--border-radius-md);
-        padding: 10px 16px;
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-medium);
-        border: none;
-        cursor: pointer;
-        transition: all 150ms ease;
-    }
-
-    /* Primary Button */
-    .stButton > button {
-        background-color: var(--color-primary);
-        color: white;
-    }
-
-    .stButton > button:hover:not(:disabled) {
-        background-color: var(--color-primary-dark);
-        box-shadow: var(--shadow-md);
-    }
-
-    .stButton > button:active:not(:disabled) {
-        background-color: #1E40AF;
-    }
-
-    .stButton > button:disabled {
-        background-color: var(--color-neutral-200);
-        color: var(--color-neutral-400);
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-
-    .stButton > button:focus-visible {
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
-        box-shadow: var(--shadow-md);
-    }
-
-    /* Enhanced keyboard focus for buttons */
-    .stButton > button:focus {
-        outline: 3px solid var(--color-primary);
-        outline-offset: 2px;
-    }
-
-    /* Input Field Styling */
-    input, textarea, select {
-        font-family: var(--font-family);
-        font-size: var(--font-size-sm);
-        border: 1px solid var(--color-neutral-200);
-        border-radius: var(--border-radius-md);
-        padding: 12px 16px;
-        color: var(--color-neutral-900);
-        transition: all 150ms ease;
-    }
-
-    input::placeholder, textarea::placeholder {
-        color: var(--color-neutral-400);
-    }
-
-    input:focus, textarea:focus, select:focus {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15), inset 0 0 0 1px rgba(37, 99, 235, 0.1);
-        outline: 2px solid transparent;
-        outline-offset: 2px;
-    }
-
-    input:focus-visible, textarea:focus-visible, select:focus-visible {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15), inset 0 0 0 1px rgba(37, 99, 235, 0.1);
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
-    }
-
-    input:disabled, textarea:disabled, select:disabled {
-        background-color: var(--color-neutral-100);
-        color: var(--color-neutral-400);
-        cursor: not-allowed;
-    }
-
-    /* Loading Spinner */
-    .spinner {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid var(--color-neutral-200);
-        border-top-color: var(--color-primary);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    /* ============================================
-       LAYOUT COMPONENTS - Fixed Sidebar
-       ============================================ */
-
-    /* Sidebar Header */
-    .sidebar-header {
-        font-size: var(--font-size-lg);
-        font-weight: var(--font-weight-bold);
-        color: var(--color-neutral-900);
-        padding: var(--spacing-lg);
+    .gmail-logo span { color: #EA4335; }
+    .gmail-search {
+        flex: 1;
+        background: #EAF1FB;
+        border-radius: 24px;
+        height: 46px;
         display: flex;
         align-items: center;
-        gap: var(--spacing-md);
-        background-color: white;
-    }
-
-    /* Sidebar Navigation Container */
-    .sidebar-nav {
-        padding: 0 var(--spacing-md);
-    }
-
-    /* Sidebar Navigation Item */
-    .sidebar-nav-item {
-        display: flex;
-        align-items: center;
-        padding: var(--spacing-md) var(--spacing-lg);
-        margin-bottom: var(--spacing-sm);
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        background-color: transparent;
-        color: var(--color-neutral-900);
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-medium);
-        transition: all 150ms ease;
-        text-decoration: none;
-        border: none;
-        width: 100%;
-        text-align: left;
-    }
-
-    .sidebar-nav-item:hover {
-        background-color: var(--color-neutral-100);
-        color: var(--color-primary);
-    }
-
-    .sidebar-nav-item.active {
-        background-color: var(--color-primary-light);
-        color: var(--color-primary);
-        font-weight: var(--font-weight-semibold);
-    }
-
-    /* Sidebar Divider */
-    .sidebar-divider {
-        height: 1px;
-        background-color: var(--color-neutral-200);
-        margin: var(--spacing-lg) 0;
-    }
-
-    /* Sidebar Settings Section */
-    .sidebar-settings {
-        padding: 0 var(--spacing-md) var(--spacing-lg);
-        margin-top: auto;
-    }
-
-    .settings-label {
-        font-size: var(--font-size-xs);
-        font-weight: var(--font-weight-semibold);
-        color: var(--color-neutral-600);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: var(--spacing-md);
-        display: block;
-    }
-
-    /* Main Content Header */
-    .content-header {
-        margin-bottom: var(--spacing-lg);
-    }
-
-    .content-title {
-        font-size: var(--font-size-2xl);
-        font-weight: var(--font-weight-bold);
-        color: var(--color-neutral-900);
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .content-subtitle {
-        font-size: var(--font-size-base);
-        color: var(--color-neutral-600);
-        margin-bottom: var(--spacing-lg);
-    }
-
-    /* Sidebar Container Styling */
-    .sidebar-container {
-        background-color: var(--color-neutral-50);
-        border-right: 1px solid var(--color-neutral-200);
-        height: 100vh;
-        overflow-y: auto;
-        position: relative;
-    }
-
-    /* Main Content Container */
-    .main-content-container {
-        padding: var(--spacing-lg);
-        background-color: white;
-        overflow-y: auto;
-    }
-
-    /* ============================================
-       ACCESSIBILITY - Enhanced Keyboard Navigation
-       ============================================ */
-
-    /* Sidebar navigation keyboard focus */
-    .sidebar-nav-item:focus-visible {
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
-        background-color: var(--color-primary-light);
-        color: var(--color-primary);
-    }
-
-    /* Link keyboard focus */
-    a:focus-visible {
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
-        border-radius: 2px;
-    }
-
-    /* Reduce motion for users who prefer it */
-    @media (prefers-reduced-motion: reduce) {
-        * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-        }
-    }
-
-    /* High contrast mode support */
-    @media (prefers-contrast: more) {
-        .sidebar-nav-item {
-            border: 1px solid transparent;
-        }
-
-        .sidebar-nav-item:focus-visible {
-            border: 2px solid var(--color-primary);
-        }
-
-        button {
-            border: 1px solid currentColor;
-        }
-    }
-
-    /* ============================================
-       3-COLUMN GRID LAYOUT
-       ============================================ */
-    /* Ensure main app takes full height */
-    .main {
-        height: 100vh;
-    }
-
-    /* Target Streamlit column containers */
-    [data-testid="column"] {
-        height: 100vh;
-        overflow-y: auto !important;
-        overflow-x: hidden;
-    }
-
-    /* Style for first column (inbox) */
-    [data-testid="column"]:first-child {
-        background-color: #F3F4F6;
-        border-right: 1px solid #E5E7EB;
-        padding: 16px;
-    }
-
-    /* Style for second column (thread viewer) */
-    [data-testid="column"]:nth-child(2) {
-        background-color: white;
-        padding: 24px;
-    }
-
-    /* Style for third column (assistant) */
-    [data-testid="column"]:nth-child(3) {
-        background-color: #F9FAFB;
-        border-left: 1px solid #E5E7EB;
-        padding: 16px;
-    }
-
-    .thread-messages-container {
-        max-height: calc(100vh - 300px);
-        overflow-y: auto;
-        padding-right: 8px;
-        margin-right: -8px;
-        border-bottom: 1px solid #E5E7EB;
-        padding-bottom: 16px;
-        margin-bottom: 16px;
-    }
-
-    .thread-messages-container::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .thread-messages-container::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .thread-messages-container::-webkit-scrollbar-thumb {
-        background: #D1D5DB;
-        border-radius: 4px;
-    }
-
-    .thread-messages-container::-webkit-scrollbar-thumb:hover {
-        background: #9CA3AF;
-    }
-
-    /* ============================================
-       ASSISTANT PANEL - REFINED STYLING
-       ============================================ */
-
-    /* Output card styling */
-    .output-card {
-        background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
-        border: 1px solid #E5E7EB;
-        border-radius: 8px;
-        padding: 16px;
-        margin: 12px 0;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        line-height: 1.6;
-        color: #111827;
-        white-space: pre-wrap;
-        word-break: break-word;
-        transition: box-shadow 150ms ease;
-    }
-
-    .output-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Success indicator */
-    .success-message {
-        color: #059669;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
-        animation: slideDown 200ms ease;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Refined button styling */
-    .stButton > button {
-        transition: all 150ms ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-
-    .stButton > button:hover:not(:disabled) {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-
-    .stButton > button:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    /* Section divider */
-    .section-divider {
-        border: none;
-        border-top: 1px solid #E5E7EB;
-        margin: 16px 0;
-        opacity: 0.8;
-    }
-
-    /* Refined text area styling */
-    .stTextArea textarea {
-        border-radius: 6px !important;
-        border: 1px solid #E5E7EB !important;
-        transition: border-color 150ms ease, box-shadow 150ms ease !important;
-    }
-
-    .stTextArea textarea:focus {
-        border-color: #2563EB !important;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
-    }
-
-    /* Radio button group spacing */
-    .stRadio > div {
-        gap: 16px;
-    }
-
-    /* Expander refinement */
-    .stExpander {
-        border: 1px solid #E5E7EB !important;
-        border-radius: 6px !important;
-        transition: box-shadow 150ms ease !important;
-    }
-
-    .stExpander:hover {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-    }
-
-    /* Hide Streamlit's native sidebar and footer */
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-
-    footer {
-        display: none;
-    }
-
-    /* ============================================
-       ENHANCED STYLING - Professional Premium Cards
-       ============================================ */
-
-    /* Email List Column - Premium Background */
-    [data-testid="column"] {
-        background-color: #FFFFFF;
-    }
-
-    /* Email list cards - Premium Styling */
-    .email-card {
-        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-        display: block;
-    }
-
-    .email-card:hover {
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12) !important;
-        transform: translateY(-4px) !important;
-    }
-
-    /* Thread viewer message styling */
-    .thread-message {
-        padding: 20px 0;
-        border-bottom: 1px solid #E5E7EB;
-    }
-
-    .message-sender {
-        font-weight: 700;
-        color: #111827;
+        padding: 0 16px;
+        max-width: 720px;
+        color: #5F6368;
         font-size: 16px;
     }
 
-    .message-time {
-        color: #9CA3AF;
-        font-size: 13px;
-        margin-top: 4px;
+    /* Gmail left nav */
+    .gmail-nav {
+        width: 100%;
+        padding: 8px 0;
+    }
+    .gmail-compose {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #C2E7FF;
+        color: #001D35;
+        border-radius: 16px;
+        padding: 18px 24px;
+        font-size: 14px;
+        font-weight: 500;
+        margin: 8px 16px 16px;
+        cursor: pointer;
+        width: calc(100% - 32px);
+        border: none;
+    }
+    .gmail-nav-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 16px 4px 24px;
+        border-radius: 0 16px 16px 0;
+        font-size: 14px;
+        height: 32px;
+        cursor: pointer;
+        margin-right: 16px;
+        color: #202124;
+    }
+    .gmail-nav-item.active {
+        background: #D3E3FD;
+        font-weight: 700;
+    }
+    .gmail-nav-count {
+        font-size: 12px;
+        color: #202124;
+        font-weight: 700;
+    }
+    .gmail-nav-section {
+        font-size: 11px;
+        font-weight: 700;
+        color: #444746;
+        padding: 8px 16px 4px 24px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
     }
 
-    .message-body {
-        color: #111827;
+    /* Gmail email rows */
+    .gmail-row {
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        height: 52px;
+        border-bottom: 1px solid #F0F0F0;
+        cursor: pointer;
+        font-size: 14px;
+        gap: 8px;
+    }
+    .gmail-row.unread { background: #FFFFFF; }
+    .gmail-row.read { background: #F6F8FC; }
+    .gmail-row:hover { background: #F2F6FC; box-shadow: inset 1px 0 0 #DADCE0, inset -1px 0 0 #DADCE0; }
+    .gmail-row-sender {
+        width: 180px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-shrink: 0;
+    }
+    .gmail-row-sender.unread { font-weight: 700; color: #202124; }
+    .gmail-row-sender.read { font-weight: 400; color: #5F6368; }
+    .gmail-row-subject {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #202124;
+    }
+    .gmail-row-subject.unread { font-weight: 600; }
+    .gmail-row-subject.read { font-weight: 400; color: #5F6368; }
+    .gmail-row-snippet { color: #5F6368; font-weight: 400; }
+    .gmail-row-time {
+        font-size: 12px;
+        color: #5F6368;
+        white-space: nowrap;
+        flex-shrink: 0;
+        width: 50px;
+        text-align: right;
+    }
+    .gmail-row-time.unread { font-weight: 700; color: #202124; }
+
+    /* Gmail tab bar */
+    .gmail-tabs {
+        display: flex;
+        border-bottom: 1px solid #E0E0E0;
+        padding: 0 8px;
+    }
+    .gmail-tab {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #5F6368;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .gmail-tab.active {
+        color: #1A73E8;
+        border-bottom-color: #1A73E8;
+        font-weight: 500;
+    }
+
+    /* Gmail reading pane */
+    .gmail-reading-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 24px 8px;
+        border-bottom: 1px solid #E0E0E0;
+    }
+    .gmail-back-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #5F6368;
+        font-size: 20px;
+        background: none;
+        border: none;
+    }
+    .gmail-back-btn:hover { background: #F1F3F4; }
+    .gmail-reading-subject {
+        font-size: 22px;
+        font-weight: 400;
+        color: #202124;
+        flex: 1;
+    }
+    .gmail-message {
+        padding: 16px 24px;
+        border-bottom: 1px solid #E0E0E0;
+    }
+    .gmail-message-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .gmail-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 500;
+        color: white;
+        flex-shrink: 0;
+    }
+    .gmail-sender-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #202124;
+    }
+    .gmail-sender-email {
+        font-size: 12px;
+        color: #5F6368;
+    }
+    .gmail-message-time {
+        margin-left: auto;
+        font-size: 12px;
+        color: #5F6368;
+        white-space: nowrap;
+    }
+    .gmail-message-body {
+        font-size: 14px;
+        color: #202124;
         line-height: 1.6;
         white-space: pre-wrap;
         word-break: break-word;
-        margin-top: 12px;
+        padding-left: 56px;
     }
-
-    /* Tab styling */
-    .stTabs [data-baseweb="tab"] {
-        height: 44px;
-        padding: 0 16px;
-        border-bottom: 2px solid transparent;
+    .gmail-reply-bar {
+        display: flex;
+        gap: 8px;
+        padding: 16px 24px 24px 80px;
     }
-
-    .stTabs [aria-selected="true"] {
-        border-bottom-color: #2563EB;
-        color: #2563EB;
-    }
-
-    /* Assistant sidebar styling */
-    .assistant-context {
-        background-color: #DBEAFE;
-        padding: 12px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-        font-size: 13px;
-    }
-
-    /* Text areas and inputs */
-    .stTextArea textarea {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    .gmail-reply-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid #DADCE0;
+        background: white;
+        color: #444746;
         font-size: 14px;
+        cursor: pointer;
     }
 
-    /* Button styling - enhanced hover effects */
-    .stButton > button {
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 150ms ease;
+    /* AI Assistant panel */
+    .ai-panel {
+        border-left: 1px solid #E0E0E0;
+        height: 100%;
+        background: #FFFFFF;
+        display: flex;
+        flex-direction: column;
+    }
+    .ai-panel-header {
+        padding: 16px;
+        border-bottom: 1px solid #E0E0E0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #202124;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .ai-output-card {
+        background: #F8F9FA;
+        border: 1px solid #E0E0E0;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 13px;
+        color: #202124;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin-top: 8px;
     }
 
-    .stButton > button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Streamlit button overrides for Gmail pill style */
+    div[data-testid="stButton"] > button {
+        border-radius: 20px !important;
+        border: 1px solid #DADCE0 !important;
+        background: white !important;
+        color: #444746 !important;
+        font-family: 'Google Sans', Roboto, Arial, sans-serif !important;
+        font-size: 14px !important;
+        padding: 6px 16px !important;
+    }
+    div[data-testid="stButton"] > button:hover {
+        background: #F6F8FC !important;
     }
 </style>
 """, unsafe_allow_html=True)
