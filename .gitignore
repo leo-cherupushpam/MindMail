@@ -52,9 +52,9 @@ test_results.md
 test_validation.md
 TEST_RESULTS_FINAL.md
 
-# Development/Planning docs
+# Development/Planning docs (internal only)
 design/
-docs/
+docs/superpowers/plans/
 decisions/
 knowledge/
 .claude/
