@@ -152,7 +152,7 @@ function renderEmailView() {
     <div class="gmail-reading-header">
       <button class="gmail-back-btn" id="back-btn">←</button>
       <div class="gmail-reading-subject">${esc(t.subject)}</div>
-      <button class="gmail-assistant-toggle-btn" id="toggle-ai-btn" title="Toggle assistant">✦</button>
+      <button class="gmail-assistant-toggle-btn" id="toggle-ai-btn" title="Toggle assistant">🧠</button>
     </div>
     ${messages}
     <div class="gmail-reply-bar">
@@ -196,7 +196,7 @@ function toggleAIPanel() {
 function renderAIPanel() {
   document.getElementById('ai-panel').innerHTML = `
     <div class="ai-panel-header">
-      <span>✦ MailMind Assistant</span>
+      <span>🧠 MailMind Assistant</span>
       <button id="close-ai-btn" class="ai-panel-close-btn" onclick="toggleAIPanel()" title="Close assistant">✕</button>
     </div>
     <div class="ai-feature-btns">
@@ -288,7 +288,7 @@ function renderComposeModal() {
 function renderComposeAIPanel() {
   const panel = document.getElementById('compose-ai-panel');
   panel.innerHTML = `
-    <div class="ai-panel-header">✦ Compose Assistant</div>
+    <div class="ai-panel-header">🧠 Compose Assistant</div>
     <div class="ai-feature-btns">
       <button id="btn-compose-draft" onclick="setComposeFeature('draft')">✏️ Draft</button>
       <button id="btn-compose-ask" onclick="setComposeFeature('ask')">💬 Ask</button>
