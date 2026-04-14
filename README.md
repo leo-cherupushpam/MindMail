@@ -54,7 +54,7 @@ Every email is enriched with intelligent analysis:
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: Streamlit (Python web framework)
+- **Frontend**: FastAPI + Vanilla HTML/CSS/JS
 - **AI Models**: 
   - `gpt-4.1-nano-2025-04-14` for summarization (high-volume, cost-optimized)
   - `gpt-5-nano-2025-08-07` for drafting and Q&A (quality-critical)
@@ -65,7 +65,8 @@ Every email is enriched with intelligent analysis:
 ```
 gmail-email-assistant/
 ├── app/
-│   └── main.py                 # Streamlit UI application
+│   ├── api.py                  # FastAPI application and routes
+│   └── static/                 # Vanilla HTML/CSS/JS frontend
 ├── services/
 │   ├── models.py               # Data models (EmailMessage, EmailThread, EnrichedContext)
 │   ├── context_analyzer.py     # Email context analysis and enrichment
@@ -131,7 +132,6 @@ Each thread is designed to validate MVP features and demonstrate real-world usag
 ### Prerequisites
 - Python 3.8+
 - OpenAI API key
-- Streamlit
 
 ### Installation
 
@@ -151,10 +151,10 @@ cp .env.example .env
 ### Running the App
 
 ```bash
-streamlit run app/main.py
+uvicorn app.api:app --reload
 ```
 
-The app will open at `http://localhost:8501`
+Open http://127.0.0.1:8000 in your browser
 
 ## Usage
 
