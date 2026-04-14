@@ -5,6 +5,7 @@ const state = {
   selectedIdx: null,      // currently open thread index
   currentThread: null,    // data from GET /api/thread/{idx}
   activeFeature: null,    // 'ask' | 'draft' | 'summarize' | null
+  aiPanelOpen: true,      // AI panel visible in email view
   composeOpen: false,     // compose modal open
   composeDraft: { subject: '', body: '' },
   composeActiveFeature: null, // 'draft' | 'ask' | 'refine' | null
@@ -151,6 +152,7 @@ function renderEmailView() {
     <div class="gmail-reading-header">
       <button class="gmail-back-btn" id="back-btn">←</button>
       <div class="gmail-reading-subject">${esc(t.subject)}</div>
+      <button class="gmail-assistant-toggle-btn" id="toggle-ai-btn" title="Toggle assistant">✦</button>
     </div>
     ${messages}
     <div class="gmail-reply-bar">
@@ -159,21 +161,44 @@ function renderEmailView() {
     </div>`;
 
   document.getElementById('back-btn').addEventListener('click', backToInbox);
+  document.getElementById('toggle-ai-btn').addEventListener('click', toggleAIPanel);
 
-  // Show AI panel
+  // Show or hide AI panel based on state
   const panel = document.getElementById('ai-panel');
-  panel.style.display = 'flex';
-  renderAIPanel();
+  if (state.aiPanelOpen) {
+    panel.style.display = 'flex';
+    renderAIPanel();
+  } else {
+    panel.style.display = 'none';
+  }
 }
 
 function backToInbox() {
   renderInbox();
 }
 
+function toggleAIPanel() {
+  state.aiPanelOpen = !state.aiPanelOpen;
+  const panel = document.getElementById('ai-panel');
+  const btn = document.getElementById('toggle-ai-btn');
+
+  if (state.aiPanelOpen) {
+    panel.style.display = 'flex';
+    if (btn) btn.style.opacity = '1';
+    renderAIPanel();
+  } else {
+    panel.style.display = 'none';
+    if (btn) btn.style.opacity = '0.5';
+  }
+}
+
 // ── AI panel ───────────────────────────────────────────────────────────────
 function renderAIPanel() {
   document.getElementById('ai-panel').innerHTML = `
-    <div class="ai-panel-header">✦ Gmail Assistant</div>
+    <div class="ai-panel-header">
+      <span>✦ Gmail Assistant</span>
+      <button id="close-ai-btn" class="ai-panel-close-btn" onclick="toggleAIPanel()" title="Close assistant">✕</button>
+    </div>
     <div class="ai-feature-btns">
       <button id="btn-ask" onclick="setFeature('ask')">💬 Ask</button>
       <button id="btn-draft" onclick="setFeature('draft')">✏️ Draft</button>

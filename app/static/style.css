@@ -316,6 +316,7 @@ html, body {
     top: 0;
     background: white;
     z-index: 10;
+    justify-content: space-between;
 }
 .gmail-back-btn {
     width: 40px;
@@ -336,6 +337,27 @@ html, body {
 .gmail-back-btn:hover {
     background: #F1F3F4;
     color: #1F1F1F;
+}
+.gmail-assistant-toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #1A73E8;
+    font-size: 18px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    opacity: 1;
+}
+.gmail-assistant-toggle-btn:hover {
+    background: #E8F0FE;
+    color: #1557B0;
 }
 .gmail-reading-subject {
     font-size: 22px;
@@ -442,7 +464,27 @@ html, body {
     z-index: 10;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
+}
+.ai-panel-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    color: #5F6368;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+.ai-panel-close-btn:hover {
+    background: rgba(0,0,0,0.05);
+    color: #1F1F1F;
 }
 .ai-panel-header::before {
     content: '✨';
