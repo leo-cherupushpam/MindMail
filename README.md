@@ -2,6 +2,10 @@
 
 An intelligent email management tool that uses AI to help you understand, summarize, and respond to emails with context-aware insights.
 
+<img width="1700" height="983" alt="image" src="https://github.com/user-attachments/assets/82719a6d-b0b6-4e21-a2ad-8940e0a3bc82" />
+
+<img width="1697" height="980" alt="image" src="https://github.com/user-attachments/assets/a82a8d75-5225-4bc4-a937-5ca0885694b5" />
+
 ## Features
 
 ### 📧 Smart Email Management
