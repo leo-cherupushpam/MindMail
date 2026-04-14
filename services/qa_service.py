@@ -15,8 +15,8 @@ except Exception as e:
     client = None
 
 # Model configuration
-SEARCH_MODEL = "gpt-4.1-nano-2025-04-14"  # For high-volume tasks: summarization, organization
-DRAFTING_MODEL = "gpt-5-nano-2025-08-07"  # For quality-critical tasks: drafting, complex Q&A
+SEARCH_MODEL = "gpt-4o-mini"  # For high-volume tasks: summarization, organization
+DRAFTING_MODEL = "gpt-4o"  # For quality-critical tasks: drafting, complex Q&A
 
 
 def analyze_sentiment(text: str) -> str:
@@ -102,7 +102,7 @@ Provide a comprehensive summary that shows you understand the full context."""
     try:
         response = client.chat.completions.create(
             model=SEARCH_MODEL,
-            max_tokens=1500,
+            max_completion_tokens=1500,
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -159,7 +159,7 @@ Provide a ready-to-send email draft."""
     try:
         response = client.chat.completions.create(
             model=DRAFTING_MODEL,
-            max_tokens=1024,
+            max_completion_tokens=1024,
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -204,7 +204,7 @@ Consider the full conversation history and implicit meanings. Look beyond surfac
     try:
         response = client.chat.completions.create(
             model=DRAFTING_MODEL,
-            max_tokens=1024,
+            max_completion_tokens=1024,
             messages=[
                 {"role": "user", "content": prompt}
             ]
