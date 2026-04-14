@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gmail Assistant</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="gmail-topbar">
+    <span class="hamburger">☰</span>
+    <div class="gmail-logo"><span>G</span>mail</div>
+    <div class="gmail-search">🔍&nbsp;&nbsp;Search mail</div>
+    <div class="topbar-icons">
+      <span title="Help">?</span>
+      <span title="Settings">⚙</span>
+      <span title="Assistant">✦</span>
+      <div class="user-avatar">L</div>
+    </div>
+  </header>
+
+  <!-- Main layout -->
+  <div class="gmail-main">
+
+    <!-- Left nav -->
+    <nav class="gmail-nav" id="left-nav"></nav>
+
+    <!-- Content: inbox list OR reading pane -->
+    <main class="gmail-content" id="content-area">
+      <div style="padding:32px;color:#5F6368;text-align:center;">Loading…</div>
+    </main>
+
+    <!-- AI panel: hidden until an email is opened -->
+    <aside class="gmail-ai-panel" id="ai-panel" style="display:none;"></aside>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
