@@ -1,5 +1,5 @@
 # Technical Architecture Document
-## Gmail Email Assistant
+## MailMind - Email Intelligence Platform
 
 **Document Version:** 1.0  
 **Last Updated:** April 13, 2026  
@@ -10,7 +10,7 @@
 ## 1. Architecture Overview
 
 ### System Design Pattern
-The Gmail Email Assistant uses a **three-tier serverless architecture** with:
+MailMind uses a **three-tier serverless architecture** with:
 - **Presentation Layer:** Vanilla HTML/CSS/JavaScript frontend (no framework)
 - **Application Layer:** FastAPI REST API backend
 - **Intelligence Layer:** OpenAI API integration
@@ -79,7 +79,7 @@ The Gmail Email Assistant uses a **three-tier serverless architecture** with:
 ## 3. Project Structure
 
 ```
-gmail-email-assistant/
+mailmind/
 ├── app/
 │   ├── api.py                              # FastAPI application & routes
 │   └── static/

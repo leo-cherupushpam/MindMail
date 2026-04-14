@@ -196,7 +196,7 @@ function toggleAIPanel() {
 function renderAIPanel() {
   document.getElementById('ai-panel').innerHTML = `
     <div class="ai-panel-header">
-      <span>✦ Gmail Assistant</span>
+      <span>✦ MailMind Assistant</span>
       <button id="close-ai-btn" class="ai-panel-close-btn" onclick="toggleAIPanel()" title="Close assistant">✕</button>
     </div>
     <div class="ai-feature-btns">

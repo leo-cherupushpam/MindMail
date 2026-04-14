@@ -1,6 +1,6 @@
-# Gmail Email Assistant
+# MailMind
 
-An intelligent email management tool for GMAIL that uses AI to help you understand, summarize, and respond to emails with context-aware insights.
+An intelligent email management tool that uses AI to help you understand, summarize, and respond to emails with context-aware insights.
 
 ## Features
 
@@ -79,7 +79,7 @@ Every email is enriched with intelligent analysis:
 
 ### Project Structure
 ```
-gmail-email-assistant/
+mailmind/
 ├── app/
 │   ├── api.py                  # FastAPI application and routes
 │   └── static/                 # Vanilla HTML/CSS/JS frontend
@@ -87,7 +87,7 @@ gmail-email-assistant/
 │   ├── models.py               # Data models (EmailMessage, EmailThread, EnrichedContext)
 │   ├── context_analyzer.py     # Email context analysis and enrichment
 │   ├── qa_service.py           # AI-powered Q&A, drafting, summarization
-│   ├── mock_data.py            # 14 realistic mock email threads
+│   ├── mock_data.py            # 14 realistic sample email threads
 │   ├── gmail_auth.py           # Gmail authentication (future)
 │   ├── gmail_fetcher.py        # Gmail API integration (future)
 │   └── cache.py                # Email caching
@@ -122,9 +122,9 @@ Provides AI-powered capabilities:
 - `summarize_emails()`: Generate multi-perspective summaries
 - `analyze_sentiment()`: Quick sentiment classification
 
-## Mock Data
+## Sample Data
 
-The MVP includes **14 realistic email threads** covering diverse scenarios:
+MailMind includes **14 realistic email threads** covering diverse scenarios:
 
 1. **Production Incident**: Critical database issue with financial impact
 2. **Feature Request**: Customer-driven CSV import with stakeholder discussion
@@ -153,8 +153,8 @@ Each thread is designed to validate MVP features and demonstrate real-world usag
 
 ```bash
 # Clone the repository
-git clone https://github.com/leo-cherupushpam/gmail-email-assistant.git
-cd gmail-email-assistant
+git clone https://github.com/leo-cherupushpam/mailmind.git
+cd mailmind
 
 # Install dependencies
 pip install -r requirements.txt

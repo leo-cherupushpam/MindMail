@@ -1,5 +1,5 @@
 # Product Requirements Document (PRD)
-## Gmail Email Assistant MVP
+## MailMind - Email Intelligence Platform
 
 **Document Version:** 1.0  
 **Last Updated:** April 13, 2026  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-The Gmail Email Assistant is an AI-powered email management tool that helps professionals understand, analyze, and compose emails more effectively. By leveraging advanced language models and context enrichment, the tool provides intelligent insights into email threads and assists with professional communication.
+MailMind is an AI-powered email intelligence platform that helps professionals understand, analyze, and compose emails more effectively. By leveraging advanced language models and context enrichment, the platform provides intelligent insights into email threads and assists with professional communication.
 
 ### Key Value Propositions
 - **Faster Email Processing:** Understand email context in seconds, not minutes
@@ -379,7 +379,7 @@ The following features are intentionally excluded from MVP:
 | **Compose Assist** | ✗ | ✗ | ✓ |
 | **Context Analysis** | ✗ | ✗ | ✓ |
 
-**Unique Value:** Context-aware analysis + Compose assistance in one tool
+**Unique Value:** MailMind provides context-aware analysis + Compose assistance in one integrated platform
 
 ---
 
