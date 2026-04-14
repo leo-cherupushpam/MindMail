@@ -11,36 +11,51 @@ An intelligent email management tool for GMAIL that uses AI to help you understa
 
 ### 🤖 AI-Powered Assistant
 
-#### Ask (💬)
-Ask natural language questions about email content. The assistant understands context, implicit needs, and underlying concerns to provide insightful answers.
+#### For Existing Emails
+Access full AI features when viewing any email thread in the inbox.
 
-**Example questions:**
-- "What's the main concern in this thread?"
-- "What action do I need to take?"
-- "What are the implicit concerns from the customer?"
+**Ask (💬)** - Ask questions about email content
+- Contextual understanding of implicit needs
+- Answers grounded in enriched email analysis
+- Example questions:
+  - "What's the main concern in this thread?"
+  - "What action do I need to take?"
+  - "What are the implicit concerns from the customer?"
 
-<img width="1895" height="900" alt="image" src="https://github.com/user-attachments/assets/24326679-8d2a-40e0-902d-10623071d8f4" />
-
-
-#### Draft (📋)
-Generate professional email replies that understand context and address underlying needs. Matches the appropriate tone based on the email thread's sentiment and urgency.
-
-<img width="1853" height="842" alt="image" src="https://github.com/user-attachments/assets/64db2348-f5b7-4c32-8b91-2561e8d8fcb2" />
-
-**Supports:**
-- Professional tone recommendations
+**Draft (📋)** - Generate professional email replies
+- Context-aware response generation
+- Matches appropriate tone based on sentiment and urgency
+- Tone customization: professional, collaborative, assertive, empathetic
 - Concern-aware drafting
 - Intent-based reply generation
-- Tone customization (professional, collaborative, assertive, etc.)
 
-#### Summarize (📊)
-Create multi-perspective summaries of email threads covering:
+**Summarize (📊)** - Create multi-perspective summaries
 - Surface facts and explicit statements
 - Underlying needs and implicit asks
 - Sentiment arc and tone changes
 - Decision points requiring action
 - Professional context and power dynamics
 - Implicit concerns and hesitations
+
+#### For Composing New Emails
+Click **Compose** to open a modal for drafting new emails with AI assistance.
+
+**Draft (✏️)** - Generate email from topic
+- Create complete emails from a subject line
+- Example: Topic "Q2 Status Update" → generates full professional email
+
+**Ask (💬)** - Get writing advice
+- Answer writing questions
+- Example: "Should this sound more urgent?"
+
+**Refine (✨)** - Improve existing email text
+- Enhance tone, clarity, or length
+- Example: "Make it more concise" or "Sound more professional"
+
+#### Panel Controls
+- **✦ Toggle Button** (top right of email header) - Hide/show AI panel to maximize email space
+- **✕ Close Button** (in AI panel header) - Close panel from within
+- Panel state persists while viewing the same email
 
 ### 🧠 Context Analysis
 Every email is enriched with intelligent analysis:
@@ -54,12 +69,13 @@ Every email is enriched with intelligent analysis:
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: FastAPI + Vanilla HTML/CSS/JS
+- **Frontend**: FastAPI + Vanilla HTML/CSS/JS with Modern Design
 - **AI Models**: 
-  - `gpt-4.1-nano-2025-04-14` for summarization (high-volume, cost-optimized)
-  - `gpt-5-nano-2025-08-07` for drafting and Q&A (quality-critical)
-- **API**: OpenAI API
+  - `gpt-4o-mini` for summarization (high-volume, cost-optimized)
+  - `gpt-4o` for drafting and Q&A (quality-critical)
+- **API**: OpenAI API with `max_completion_tokens` parameter
 - **Data**: Mock email threads for MVP showcase
+- **Server**: Uvicorn with hot reload
 
 ### Project Structure
 ```
@@ -131,56 +147,74 @@ Each thread is designed to validate MVP features and demonstrate real-world usag
 
 ### Prerequisites
 - Python 3.8+
-- OpenAI API key
+- OpenAI API key (free trial or paid account)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone <repo-url>
+git clone https://github.com/leo-cherupushpam/gmail-email-assistant.git
 cd gmail-email-assistant
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Set up environment variables
-cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+export OPENAI_API_KEY=sk-your-api-key-here
 ```
 
 ### Running the App
 
 ```bash
+# Start the FastAPI server with hot reload
 uvicorn app.api:app --reload
+
+# Server will be available at:
+# http://127.0.0.1:8000
 ```
 
-Open http://127.0.0.1:8000 in your browser
+Open http://127.0.0.1:8000 in your browser and start exploring the AI-powered email assistant!
 
 ## Usage
 
-1. **Browse Emails**: Click on email threads in the inbox (left panel)
-2. **View Thread**: Read full conversation in the thread viewer (middle panel)
-3. **Ask Questions**: Use the "Ask" feature to ask about the email
-4. **Draft Replies**: Click "Draft" to generate a context-aware response
-5. **Summarize**: Click "Summarize" to get a multi-perspective summary
+### Viewing & Analyzing Emails
+1. **Browse Inbox**: Email list appears in left sidebar with sender, subject, and snippet
+2. **Open Email**: Click any email to view full conversation with enriched analysis
+3. **Ask Questions**: Click "💬 Ask" button to ask contextual questions about the email
+   - Examples: "What's the main topic?", "When is the deadline?", "What action do I need to take?"
+4. **Draft Reply**: Click "✏️ Draft" to generate a professional response
+   - Choose tone: Professional, Collaborative, Assertive, or Empathetic
+   - Optionally add intent to guide the response
+5. **Summarize**: Click "📊 Summarize" to get a comprehensive multi-perspective summary
+6. **Toggle Panel**: Click "✦" button (top right) to hide AI panel and maximize email space
 
-## Model Strategy
+### Composing New Emails
+1. **Click Compose**: Button in left sidebar opens email composition modal
+2. **Enter Subject**: Subject line for the new email
+3. **AI Draft**: Click "✏️ Draft" to auto-generate email body from subject
+4. **Ask for Help**: Click "💬 Ask" to get writing advice (e.g., "Should this sound urgent?")
+5. **Refine Text**: Click "✨ Refine" to improve existing email (e.g., "Make it shorter")
+6. **Send or Cancel**: Click "Send" to log email (MVP) or "Cancel" to close modal
 
-### SEARCH_MODEL: `gpt-4.1-nano-2025-04-14`
+## AI Model Strategy
+
+### SEARCH_MODEL: `gpt-4o-mini`
 Used for high-volume, lower-latency tasks:
-- Email summarization
+- Email summarization (📊 Summarize feature)
 - Content organization
-- Rule suggestion
+- Efficient processing
 
-**Why nano**: Cost-optimized while maintaining quality for summary tasks
+**Why gpt-4o-mini**: Cost-optimized while maintaining quality for summary tasks. Good balance of speed and accuracy.
 
-### DRAFTING_MODEL: `gpt-5-nano-2025-08-07`
+### DRAFTING_MODEL: `gpt-4o`
 Used for quality-critical, complex reasoning tasks:
-- Draft reply generation
-- Complex question answering
+- Draft reply generation (✏️ Draft for threads)
+- Complex question answering (💬 Ask about threads)
 - Context-aware decision support
+- New email composition (Compose modal features)
+- Email text refinement (✨ Refine)
 
-**Why GPT-5**: Better quality for tasks that directly impact user experience
+**Why gpt-4o**: Best quality for tasks that directly impact user experience and require deep understanding of context and implications.
 
 ## Development
 
@@ -200,20 +234,35 @@ python -c "from services.mock_data import get_sample_threads; threads = get_samp
 
 ### OpenAI API Key Not Found
 ```bash
-# Make sure .env file exists and contains:
-OPENAI_API_KEY=your_key_here
+# Make sure the environment variable is set:
+export OPENAI_API_KEY=sk-your-api-key-here
+
+# Or check if it's set:
+echo $OPENAI_API_KEY
 ```
 
 ### Model Not Available
 Check that your OpenAI account has access to:
-- `gpt-4.1-nano-2025-04-14`
-- `gpt-5-nano-2025-08-07`
+- `gpt-4o-mini` (for summarization)
+- `gpt-4o` (for drafting and Q&A)
+
+These are the latest Claude-compatible models. If you get a model not found error, check your OpenAI account billing status.
+
+### Server Port Already in Use
+If port 8000 is already in use, run on a different port:
+```bash
+uvicorn app.api:app --reload --port 8001
+# Then open http://127.0.0.1:8001
+```
 
 ## Performance Notes
 
-- **Summarization**: Uses nano model for faster responses (typically <5s)
-- **Drafting**: Uses GPT-5 for quality (typically <8s)
-- **Q&A**: Depends on question complexity (typically 5-15s)
+- **Summarization** (📊): Uses gpt-4o-mini for faster responses (typically <5s)
+- **Drafting** (✏️): Uses gpt-4o for quality (typically <8s)
+- **Q&A** (💬): Uses gpt-4o for accuracy (typically 5-15s depending on complexity)
+- **Compose Features**: Compose draft/refine/ask all use gpt-4o (typically <10s per request)
+
+*Note: Response times depend on OpenAI API load and your internet connection*
 
 ## License
 
