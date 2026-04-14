@@ -13,7 +13,10 @@ from typing import Optional
 
 from services.mock_data import get_sample_threads
 from services.context_analyzer import ContextAnalyzer
-from services.qa_service import ask_question, generate_draft_reply, summarize_emails
+from services.qa_service import (
+    ask_question, generate_draft_reply, summarize_emails,
+    draft_email_from_topic, refine_email_text, ask_writing_question
+)
 
 app = FastAPI()
 
@@ -108,3 +111,42 @@ def api_summarize(req: SummarizeRequest):
         return JSONResponse({"error": "invalid thread"}, status_code=400)
     summary = summarize_emails(_enriched[req.thread_idx])
     return {"summary": summary}
+
+
+# ── Compose mode AI: Draft from topic ─────────────────────────────────────
+class ComposeTopicRequest(BaseModel):
+    topic: str
+    description: Optional[str] = None
+
+@app.post("/api/compose/draft")
+def api_compose_draft(req: ComposeTopicRequest):
+    if not req.topic or not req.topic.strip():
+        return JSONResponse({"error": "topic is required"}, status_code=400)
+    draft = draft_email_from_topic(req.topic, req.description)
+    return {"draft": draft}
+
+
+# ── Compose mode AI: Refine email text ────────────────────────────────────
+class ComposeRefineRequest(BaseModel):
+    current_text: str
+    refinement_request: str
+
+@app.post("/api/compose/refine")
+def api_compose_refine(req: ComposeRefineRequest):
+    if not req.current_text or not req.refinement_request:
+        return JSONResponse({"error": "current_text and refinement_request are required"}, status_code=400)
+    refined = refine_email_text(req.current_text, req.refinement_request)
+    return {"refined_text": refined}
+
+
+# ── Compose mode AI: Ask writing questions ────────────────────────────────
+class ComposeAskRequest(BaseModel):
+    question: str
+    email_draft: Optional[str] = None
+
+@app.post("/api/compose/ask")
+def api_compose_ask(req: ComposeAskRequest):
+    if not req.question or not req.question.strip():
+        return JSONResponse({"error": "question is required"}, status_code=400)
+    answer = ask_writing_question(req.question, req.email_draft)
+    return {"answer": answer}

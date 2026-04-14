@@ -5,6 +5,9 @@ const state = {
   selectedIdx: null,      // currently open thread index
   currentThread: null,    // data from GET /api/thread/{idx}
   activeFeature: null,    // 'ask' | 'draft' | 'summarize' | null
+  composeOpen: false,     // compose modal open
+  composeDraft: { subject: '', body: '' },
+  composeActiveFeature: null, // 'draft' | 'ask' | 'refine' | null
 };
 
 // ── Avatar helpers ─────────────────────────────────────────────────────────
@@ -68,6 +71,7 @@ function renderLeftNav() {
     <div class="gmail-nav-section">LABELS</div>
     <div class="gmail-nav-item"><span>🏷️ Work</span></div>
   `;
+  document.querySelector('.gmail-compose').addEventListener('click', openCompose);
 }
 
 // ── Inbox view ─────────────────────────────────────────────────────────────
@@ -215,9 +219,100 @@ function setFeature(feature) {
   }
 }
 
+// ── Compose Modal ─────────────────────────────────────────────────────────
+function openCompose() {
+  state.composeOpen = true;
+  state.composeDraft = { subject: '', body: '' };
+  state.composeActiveFeature = null;
+  renderComposeModal();
+}
+
+function closeCompose() {
+  state.composeOpen = false;
+  const modal = document.getElementById('compose-modal');
+  modal.style.display = 'none';
+}
+
+function renderComposeModal() {
+  if (!state.composeOpen) return;
+
+  const modal = document.getElementById('compose-modal');
+  modal.style.display = 'flex';
+
+  // Set form values
+  document.getElementById('compose-subject').value = state.composeDraft.subject;
+  document.getElementById('compose-body').value = state.composeDraft.body;
+
+  // Setup event listeners
+  document.getElementById('compose-subject').addEventListener('change', (e) => {
+    state.composeDraft.subject = e.target.value;
+  });
+  document.getElementById('compose-body').addEventListener('change', (e) => {
+    state.composeDraft.body = e.target.value;
+  });
+
+  document.getElementById('compose-cancel').addEventListener('click', closeCompose);
+  document.getElementById('compose-close-btn').addEventListener('click', closeCompose);
+  document.getElementById('compose-send').addEventListener('click', sendCompose);
+  document.querySelector('.compose-backdrop').addEventListener('click', closeCompose);
+
+  // Render AI panel
+  renderComposeAIPanel();
+}
+
+function renderComposeAIPanel() {
+  const panel = document.getElementById('compose-ai-panel');
+  panel.innerHTML = `
+    <div class="ai-panel-header">✦ Compose Assistant</div>
+    <div class="ai-feature-btns">
+      <button id="btn-compose-draft" onclick="setComposeFeature('draft')">✏️ Draft</button>
+      <button id="btn-compose-ask" onclick="setComposeFeature('ask')">💬 Ask</button>
+      <button id="btn-compose-refine" onclick="setComposeFeature('refine')">✨ Refine</button>
+    </div>
+    <div class="ai-feature-area" id="compose-feature-area">
+      <p style="color:#5F6368;font-size:13px;">Choose an action above.</p>
+    </div>`;
+}
+
+function setComposeFeature(feature) {
+  state.composeActiveFeature = feature;
+  // Update active button style
+  ['draft','ask','refine'].forEach(f => {
+    const btn = document.getElementById(`btn-compose-${f}`);
+    if (btn) btn.classList.toggle('active', f === feature);
+  });
+
+  const area = document.getElementById('compose-feature-area');
+
+  if (feature === 'draft') {
+    area.innerHTML = `
+      <p style="color:#5F6368;font-size:12px;margin-bottom:8px;">Generate email body from subject</p>
+      <textarea id="compose-draft-input" rows="2" placeholder="(optional) Add any details…"></textarea>
+      <button class="ai-submit-btn" onclick="submitComposeDraft()">Generate →</button>
+      <div id="compose-ai-result"></div>`;
+
+  } else if (feature === 'ask') {
+    area.innerHTML = `
+      <textarea id="compose-ask-input" rows="2" placeholder="E.g., Should this sound more urgent?"></textarea>
+      <button class="ai-submit-btn" onclick="submitComposeAsk()">Ask →</button>
+      <div id="compose-ai-result"></div>`;
+
+  } else if (feature === 'refine') {
+    area.innerHTML = `
+      <textarea id="compose-refine-input" rows="2" placeholder="E.g., Make it shorter and more direct"></textarea>
+      <button class="ai-submit-btn" onclick="submitComposeRefine()">Refine →</button>
+      <div id="compose-ai-result"></div>`;
+  }
+}
+
 // ── AI API calls ───────────────────────────────────────────────────────────
 function showLoading() {
   const el = document.getElementById('ai-result');
+  if (el) el.innerHTML = '<div class="ai-loading">Thinking…</div>';
+}
+
+function showComposeLoading() {
+  const el = document.getElementById('compose-ai-result');
   if (el) el.innerHTML = '<div class="ai-loading">Thinking…</div>';
 }
 
@@ -259,6 +354,100 @@ async function submitSummarize() {
   const data = await res.json();
   document.getElementById('ai-result').innerHTML =
     `<div class="ai-output-card">${esc(data.summary)}</div>`;
+}
+
+// ── Compose AI functions ───────────────────────────────────────────────────
+async function submitComposeDraft() {
+  const subject = document.getElementById('compose-subject').value.trim();
+  const description = document.getElementById('compose-draft-input').value.trim();
+  if (!subject) {
+    alert('Please enter a subject first');
+    return;
+  }
+  showComposeLoading();
+  try {
+    const res = await fetch('/api/compose/draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: subject, description: description || null }),
+    });
+    const data = await res.json();
+    if (data.draft) {
+      state.composeDraft.body = data.draft;
+      document.getElementById('compose-body').value = data.draft;
+      document.getElementById('compose-ai-result').innerHTML =
+        `<div class="ai-output-card" style="background:#E8F5E9;border-color:#66BB6A;"><strong>✓ Draft generated!</strong> Updated the body below.</div>`;
+    } else {
+      document.getElementById('compose-ai-result').innerHTML =
+        `<div class="ai-output-card" style="color:#d32f2f;">Error: ${esc(data.error || 'Unknown error')}</div>`;
+    }
+  } catch (e) {
+    document.getElementById('compose-ai-result').innerHTML =
+      `<div class="ai-output-card" style="color:#d32f2f;">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+async function submitComposeAsk() {
+  const question = document.getElementById('compose-ask-input').value.trim();
+  const emailDraft = state.composeDraft.body || null;
+  if (!question) return;
+  showComposeLoading();
+  try {
+    const res = await fetch('/api/compose/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, email_draft: emailDraft }),
+    });
+    const data = await res.json();
+    document.getElementById('compose-ai-result').innerHTML =
+      `<div class="ai-output-card">${esc(data.answer)}</div>`;
+  } catch (e) {
+    document.getElementById('compose-ai-result').innerHTML =
+      `<div class="ai-output-card" style="color:#d32f2f;">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+async function submitComposeRefine() {
+  const currentText = document.getElementById('compose-body').value.trim();
+  const refinementRequest = document.getElementById('compose-refine-input').value.trim();
+  if (!currentText || !refinementRequest) {
+    alert('Please write email text and specify how to refine it');
+    return;
+  }
+  showComposeLoading();
+  try {
+    const res = await fetch('/api/compose/refine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_text: currentText, refinement_request: refinementRequest }),
+    });
+    const data = await res.json();
+    if (data.refined_text) {
+      state.composeDraft.body = data.refined_text;
+      document.getElementById('compose-body').value = data.refined_text;
+      document.getElementById('compose-ai-result').innerHTML =
+        `<div class="ai-output-card" style="background:#E8F5E9;border-color:#66BB6A;"><strong>✓ Refined!</strong> Updated the body below.</div>`;
+    } else {
+      document.getElementById('compose-ai-result').innerHTML =
+        `<div class="ai-output-card" style="color:#d32f2f;">Error: ${esc(data.error || 'Unknown error')}</div>`;
+    }
+  } catch (e) {
+    document.getElementById('compose-ai-result').innerHTML =
+      `<div class="ai-output-card" style="color:#d32f2f;">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+function sendCompose() {
+  const subject = state.composeDraft.subject.trim();
+  const body = state.composeDraft.body.trim();
+  if (!subject || !body) {
+    alert('Please enter subject and body');
+    return;
+  }
+  // For MVP: Just log the email and close
+  console.log('Email drafted:', state.composeDraft);
+  alert('Email drafted:\n\nSubject: ' + subject + '\n\n' + body.substring(0, 100) + '...');
+  closeCompose();
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────

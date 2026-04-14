@@ -212,3 +212,112 @@ Consider the full conversation history and implicit meanings. Look beyond surfac
         return response.choices[0].message.content
     except Exception as e:
         return f"An error occurred during question answering: {e}"
+
+
+# ── Compose mode AI functions (no thread context needed) ──────────────────
+def draft_email_from_topic(topic: str, description: str = None) -> str:
+    """
+    Draft an email from a topic/subject line.
+
+    Args:
+        topic: Email subject or topic
+        description: Optional additional details for the email
+
+    Returns:
+        Drafted email body text
+    """
+    if client is None:
+        return "Error: OpenAI client not configured. Please ensure OPENAI_API_KEY is set."
+
+    details = f"\nAdditional details: {description}" if description else ""
+
+    prompt = f"""Draft a professional email with the subject line: "{topic}"{details}
+
+Generate a well-structured, professional email body that:
+1. Addresses the main topic clearly
+2. Uses appropriate tone (professional but warm)
+3. Is concise yet complete (150-400 words)
+4. Includes a clear call to action or conclusion
+5. Has proper greeting and closing
+
+Provide only the email body text (no "Subject:" line or other formatting)."""
+
+    try:
+        response = client.chat.completions.create(
+            model=DRAFTING_MODEL,
+            max_completion_tokens=600,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error during draft generation: {e}"
+
+
+def refine_email_text(current_text: str, refinement_request: str) -> str:
+    """
+    Refine existing email text based on user request.
+
+    Args:
+        current_text: Current email body text
+        refinement_request: What to change (e.g., "Make it shorter", "Sound more urgent")
+
+    Returns:
+        Refined email text
+    """
+    if client is None:
+        return "Error: OpenAI client not configured. Please ensure OPENAI_API_KEY is set."
+
+    prompt = f"""Here's an email draft:
+
+{current_text}
+
+Please {refinement_request}
+
+Provide only the revised email text (no explanations or metadata)."""
+
+    try:
+        response = client.chat.completions.create(
+            model=DRAFTING_MODEL,
+            max_completion_tokens=600,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error during refinement: {e}"
+
+
+def ask_writing_question(question: str, email_draft: str = None) -> str:
+    """
+    Answer writing/composing questions.
+
+    Args:
+        question: Writing question or suggestion request
+        email_draft: Optional email text for context
+
+    Returns:
+        Answer or suggestion for the writing question
+    """
+    if client is None:
+        return "Error: OpenAI client not configured. Please ensure OPENAI_API_KEY is set."
+
+    context = f"\nCurrent email draft:\n{email_draft}\n\n" if email_draft else ""
+
+    prompt = f"""Answer this writing/composing question: {question}
+
+{context}Provide helpful, concise advice. Be specific and practical."""
+
+    try:
+        response = client.chat.completions.create(
+            model=DRAFTING_MODEL,
+            max_completion_tokens=500,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error during question answering: {e}"

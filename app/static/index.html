@@ -37,6 +37,30 @@
 
   </div>
 
+  <!-- Compose Modal -->
+  <div id="compose-modal" class="compose-modal" style="display:none;">
+    <div class="compose-backdrop"></div>
+    <div class="compose-container">
+      <div class="compose-panes">
+        <!-- Left Pane: Email Editor -->
+        <div class="compose-editor">
+          <div class="compose-header">
+            <h2>Compose Email</h2>
+            <button id="compose-close-btn" class="compose-close-btn" title="Close">✕</button>
+          </div>
+          <input id="compose-subject" class="compose-subject-input" type="text" placeholder="Subject">
+          <textarea id="compose-body" class="compose-body-textarea" placeholder="Body"></textarea>
+          <div class="compose-actions">
+            <button id="compose-send" class="compose-send-btn">Send</button>
+            <button id="compose-cancel" class="compose-cancel-btn">Cancel</button>
+          </div>
+        </div>
+        <!-- Right Pane: AI Panel -->
+        <div class="compose-ai-panel" id="compose-ai-panel"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="/static/app.js"></script>
 </body>
 </html>

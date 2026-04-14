@@ -571,3 +571,217 @@ html, body {
         width: 320px;
     }
 }
+
+/* ── Compose Modal ───────────────────────────────────────────────────────– */
+.compose-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.compose-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.compose-container {
+    position: relative;
+    z-index: 201;
+    width: 90%;
+    max-width: 1400px;
+    height: 85vh;
+    background: white;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.compose-panes {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    gap: 0;
+}
+
+.compose-editor {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 1px solid #E0E0E0;
+}
+
+.compose-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.compose-header h2 {
+    font-size: 24px;
+    color: #1F1F1F;
+    font-weight: 600;
+    margin: 0;
+}
+
+.compose-close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    color: #5F6368;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.compose-close-btn:hover {
+    background: #F1F3F4;
+    color: #1F1F1F;
+}
+
+.compose-subject-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #DADCE0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    color: #1F1F1F;
+}
+
+.compose-subject-input:focus {
+    outline: none;
+    border-color: #1A73E8;
+    box-shadow: 0 0 0 4px rgba(26,115,232,0.1);
+}
+
+.compose-body-textarea {
+    flex: 1;
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #DADCE0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+    color: #1F1F1F;
+    line-height: 1.6;
+}
+
+.compose-body-textarea:focus {
+    outline: none;
+    border-color: #1A73E8;
+    box-shadow: 0 0 0 4px rgba(26,115,232,0.1);
+}
+
+.compose-body-textarea::placeholder,
+.compose-subject-input::placeholder {
+    color: #5F6368;
+}
+
+.compose-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+}
+
+.compose-send-btn,
+.compose-cancel-btn {
+    padding: 12px 32px;
+    border-radius: 20px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.compose-send-btn {
+    background: #1A73E8;
+    color: white;
+}
+
+.compose-send-btn:hover {
+    background: #1557B0;
+    box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+    transform: translateY(-1px);
+}
+
+.compose-cancel-btn {
+    background: white;
+    color: #444746;
+    border: 1px solid #DADCE0;
+}
+
+.compose-cancel-btn:hover {
+    background: #F6F8FC;
+    border-color: #1A73E8;
+    color: #1A73E8;
+}
+
+.compose-ai-panel {
+    width: 380px;
+    flex-shrink: 0;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid #E0E0E0;
+}
+
+@media (max-width: 1200px) {
+    .compose-ai-panel {
+        width: 320px;
+    }
+    .compose-container {
+        max-width: 95vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .compose-container {
+        height: 95vh;
+        max-width: 98vw;
+    }
+    .compose-panes {
+        flex-direction: column;
+    }
+    .compose-editor {
+        border-right: none;
+        border-bottom: 1px solid #E0E0E0;
+    }
+    .compose-ai-panel {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid #E0E0E0;
+        height: 300px;
+    }
+}
